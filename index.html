@@ -1,0 +1,4710 @@
+<!DOCTYPE html>
+<!--
+  Γεννήτρια Διαγωνισμάτων - Εφαρμογή δημιουργίας και εκτύπωσης διαγωνισμάτων
+  Program Architect: George Petrakis
+  Copyright (C) 2026 George Petrakis
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
+-->
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Γεννήτρια Διαγωνισμάτων</title>
+  <meta name="description" content="Εφαρμογή δημιουργίας, τυχαίας αναδιάταξης και εκτύπωσης διαγωνισμάτων μαθηματικών δημοτικού σε μορφή A4 με υποστήριξη KaTeX." />
+  <meta property="og:title" content="Γεννήτρια Διαγωνισμάτων" />
+  <meta property="og:description" content="Δημιουργήστε και εκτυπώστε διαγωνίσματα μαθηματικών δημοτικού με πολλαπλές ομάδες (Α, Β, Γ, Δ) και αυτόματο φύλλο λύσεων." />
+  <meta property="og:type" content="website" />
+
+  <!-- KaTeX CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg-canvas: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f8fafc;
+      --border-hairline: #cbd5e1;
+      --border-soft: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #1d4ed8;
+      --accent-hover: #1e40af;
+      --accent-soft: #eff6ff;
+      --accent-border: #bfdbfe;
+      --success: #047857;
+      --success-soft: #ecfdf5;
+      --success-border: #a7f3d0;
+      --warning: #b45309;
+      --warning-soft: #fffbeb;
+      --warning-border: #fde68a;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* Top Bar (3 zones) */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 12px 24px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-link-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 1.5px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .topbar-link-btn:hover {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .topbar-cta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .topbar-info-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      background-color: var(--bg-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .topbar-info-btn:hover {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.25;
+      cursor: pointer;
+      border: 1px solid var(--border-hairline);
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      white-space: nowrap;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--bg-subtle);
+      border-color: #94a3b8;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    .btn-secondary-accent {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .btn-secondary-accent:hover {
+      background-color: #dbeafe;
+      border-color: #93c5fd;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Main Workspace */
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(430px, 530px) 1fr;
+      gap: 24px;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 20px 24px 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 1180px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Editor Column */
+    .editor-column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .panel {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .panel-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Form Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border-hairline);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 13.5px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+    }
+
+    .textarea-student {
+      min-height: 62px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .textarea-questions {
+      min-height: 300px;
+      resize: vertical;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    /* Math Toolbar */
+    .math-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 8px;
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+    }
+
+    .tool-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 9px;
+      border: 1px solid var(--border-hairline);
+      border-radius: 6px;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .tool-btn:hover {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .tool-btn-section {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .tool-btn-section:hover {
+      background-color: #dbeafe;
+    }
+
+    .syntax-help {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-soft);
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .syntax-help code {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      background-color: var(--bg-subtle);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid var(--border-soft);
+      color: var(--text-primary);
+    }
+
+    /* Question & Section Manager */
+    .manager-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mgr-section {
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-subtle);
+      overflow: hidden;
+    }
+
+    .mgr-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background-color: var(--bg-surface);
+      border-bottom: 1px solid var(--border-soft);
+      flex-wrap: wrap;
+    }
+
+    .mgr-section-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 0;
+      flex: 1 1 200px;
+    }
+
+    .mgr-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .mgr-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mgr-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mgr-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mgr-warning {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--warning);
+    }
+
+    .mgr-prompt {
+      font-size: 13.5px;
+      color: var(--text-primary);
+      line-height: 1.5;
+    }
+
+    .mgr-subitems {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-left: 12px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .mgr-subitem-correct {
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .mgr-variants-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mgr-variant-item {
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mgr-variant-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mgr-variant-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .mgr-variant-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+
+    .mgr-card-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .lock-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-hairline);
+      background-color: var(--bg-surface);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .lock-btn:hover {
+      border-color: #94a3b8;
+      color: var(--text-primary);
+    }
+
+    .lock-btn.is-locked {
+      background-color: var(--warning-soft);
+      border-color: var(--warning-border);
+      color: var(--warning);
+    }
+
+    .lock-btn.is-range-locked {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .lock-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .lock-control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .lock-range-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background-color: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .lock-range-inline-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .lock-range-select {
+      padding: 2px 6px;
+      border: 1px solid var(--accent-border);
+      border-radius: 5px;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+    }
+
+    .mgr-card.is-lock-conflict {
+      border-color: #fca5a5;
+      background-color: #fffefe;
+    }
+
+    .mgr-conflict-banner {
+      margin: 8px 10px 0;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid #fecaca;
+      background-color: var(--danger-soft);
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .mgr-conflict-badge {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    /* Preview Pane */
+    .preview-column {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .preview-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    .preview-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preview-jump-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      background-color: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .preview-jump-btn:hover {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .preview-jump-btn.is-active {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .preview-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .preview-sync-toggle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .spacing-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 2px 4px;
+      border: 1px solid var(--border-soft);
+      border-radius: 7px;
+      background-color: var(--bg-subtle);
+    }
+
+    .spacing-control-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 0 5px 0 3px;
+      white-space: nowrap;
+    }
+
+    .spacing-step-btn,
+    .spacing-value-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 5px;
+      cursor: pointer;
+      line-height: 1.2;
+      padding: 3px 7px;
+      transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .spacing-value-btn {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      min-width: 36px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      padding: 3px 4px;
+    }
+
+    .spacing-step-btn:hover:not(:disabled),
+    .spacing-value-btn:hover {
+      background-color: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .spacing-step-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .spacing-reset-btn {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border: 1px solid var(--border-soft);
+      border-radius: 7px;
+      background-color: var(--bg-subtle);
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.2;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, opacity 0.12s ease;
+    }
+
+    .spacing-reset-btn:hover:not(:disabled) {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .spacing-reset-btn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .preview-pages-wrapper {
+      overflow-x: auto;
+      padding: 4px 4px 24px;
+    }
+
+    @media (min-width: 1181px) {
+      .preview-column {
+        position: sticky;
+        top: 72px;
+        max-height: calc(100vh - 88px);
+      }
+
+      .preview-pages-wrapper {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: auto;
+        overscroll-behavior: contain;
+        padding-right: 8px;
+      }
+    }
+
+    .is-cursor-focused {
+      background-color: rgba(29, 78, 216, 0.045);
+      border-radius: 6px;
+      box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.045);
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* A4 Sheet Screen Simulation */
+    .a4-sheet {
+      display: flex;
+      flex-direction: column;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 12.7mm 12.7mm 7.5mm 12.7mm;
+      margin: 0 auto 24px auto;
+      background-color: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 8px 28px rgba(15, 23, 42, 0.10);
+      border: 1px solid #e2e8f0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: var(--sheet-font-size, 11pt);
+      line-height: 1.55;
+    }
+
+    .sheet-header,
+    .sheet-body,
+    .answer-key-header,
+    .answer-key-grid {
+      flex: 0 0 auto;
+    }
+
+    .sheet-body .exam-section:last-child,
+    .sheet-body .exam-section:last-child > :last-child {
+      margin-bottom: 0;
+    }
+
+    .sheet-footer {
+      flex: 0 0 auto;
+      margin-top: auto;
+      padding-top: 2mm;
+      text-align: center;
+      font-size: 0.77em;
+      line-height: 1;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+      user-select: none;
+    }
+
+    /* Printed Test Header */
+    .sheet-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+
+    .student-info-block {
+      white-space: pre-line;
+      font-size: 0.955em;
+      line-height: 1.75;
+      color: #0f172a;
+      flex: 1;
+    }
+
+    .version-badge {
+      border: 2px solid #0f172a;
+      padding: 5px 14px;
+      font-size: 1.045em;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #0f172a;
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .sheet-title-block {
+      text-align: center;
+      padding: 8px 0 10px;
+      margin-bottom: 14px;
+      border-bottom: 1.5px solid #0f172a;
+    }
+
+    .sheet-title {
+      margin: 0;
+      font-size: 1.318em;
+      font-weight: 700;
+      color: #0f172a;
+      text-wrap: balance;
+    }
+
+    .sheet-subtitle {
+      margin: 4px 0 0;
+      font-size: 0.91em;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    /* Exam Content */
+    .exam-section {
+      margin-bottom: calc(var(--question-gap, 8px) * 1.4 + 3px);
+    }
+
+    .exam-section-title {
+      margin: calc(var(--question-gap, 8px) * 0.5 + 8px) 0 calc(var(--question-gap, 8px) * 0.25 + 4px);
+      font-size: 1.045em;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 3px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      break-after: avoid;
+      page-break-after: avoid;
+      line-height: 1.45;
+    }
+
+    .exam-section:first-child .exam-section-title {
+      margin-top: 2px;
+    }
+
+    .test-question {
+      margin-bottom: var(--question-gap, 8px);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .question-line {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      line-height: 1.42;
+    }
+
+    .question-num {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .question-text {
+      flex: 1;
+      min-width: 0;
+      orphans: 3;
+      widows: 3;
+    }
+
+    /* Multiple Choice Options */
+    .mc-options {
+      margin: 3px 0 2px 1.5em;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2px 20px;
+    }
+
+    .mc-options.two-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mc-options.single-row {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 2px 12px;
+    }
+
+    .mc-option {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      line-height: 1.42;
+    }
+
+    .mc-option.is-correct-preview {
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 5px;
+      padding: 1px 8px;
+      margin: -2px -8px;
+      color: #065f46;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .mc-missing-correct {
+      margin: 4px 0 0 1.5em;
+      font-size: 0.864em;
+      color: #b45309;
+      font-weight: 600;
+    }
+
+    .mc-alt-cycle-btn {
+      appearance: none;
+      display: inline-flex;
+      align-items: center;
+      margin-left: 4px;
+      padding: 1px 4px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background-color: #f8fafc;
+      color: #475569;
+      font-family: var(--font-sans);
+      font-size: 7pt;
+      font-weight: 700;
+      line-height: 1.1;
+      vertical-align: middle;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    }
+
+    .mc-alt-cycle-btn:hover {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .mgr-alt-sep {
+      display: inline-block;
+      margin: 0 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .test-question.is-variant-slot,
+    .matching-block.is-variant-slot {
+      position: relative;
+      border-left: 2px solid #93c5fd;
+      padding-left: 8px;
+      margin-left: -10px;
+    }
+
+    .variant-inline-switcher {
+      position: absolute;
+      top: -15px;
+      right: 0;
+      z-index: 4;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 1px 4px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+      flex-shrink: 0;
+      font-family: var(--font-sans);
+      line-height: 1.2;
+      user-select: none;
+    }
+
+    .variant-inline-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #64748b;
+      padding: 0 3px 0 2px;
+    }
+
+    .variant-inline-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 7.5pt;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+      line-height: 1.25;
+      font-variant-numeric: tabular-nums;
+      transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .variant-inline-btn:hover {
+      background-color: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .variant-inline-btn.is-active {
+      background-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .matching-prompt-row {
+      display: block;
+    }
+
+    .matching-prompt-row .matching-prompt {
+      min-width: 0;
+    }
+
+    .mc-letter {
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* Open-Ended Writing Lines */
+    .writing-lines {
+      margin: 6px 0 4px 1.5em;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .writing-line {
+      height: 8.5mm;
+      border-bottom: 1px solid #94a3b8;
+    }
+
+    .extra-space-lines {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      margin: 2px 0 0 1.5em;
+      border-left: 2px dashed #e2e8f0;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .extra-space-hint {
+      font-size: 7.5pt;
+      color: #94a3b8;
+      padding: 0 4px 1px;
+      user-select: none;
+    }
+
+    .spacer-block {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      margin-bottom: var(--question-gap, 8px);
+      border-left: 2px dashed #cbd5e1;
+      color: #94a3b8;
+      font-size: 8pt;
+      user-select: none;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .inline-space-break {
+      display: block;
+      width: 100%;
+    }
+
+    /* Matching Exercise */
+    .matching-block {
+      margin-bottom: calc(var(--question-gap, 8px) + 4px);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .matching-prompt {
+      margin-bottom: 6px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .matching-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 28px;
+      margin: 4px 0 10px 8px;
+    }
+
+    .matching-col-header {
+      font-weight: 700;
+      font-size: 0.955em;
+      color: #334155;
+      border-bottom: 1px solid #cbd5e1;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+    }
+
+    .matching-row-item {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      line-height: 1.45;
+      padding: 2px 0;
+    }
+
+    .matching-key-label {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      min-width: 20px;
+      flex-shrink: 0;
+    }
+
+    .matching-answer-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      margin: 8px 0 4px 8px;
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.955em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .matching-answer-slot {
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .matching-blank {
+      display: inline-block;
+      width: 2.1em;
+      border-bottom: 1.5px solid #0f172a;
+      margin-left: 4px;
+      height: 1.05em;
+      text-align: center;
+      line-height: 0.95em;
+    }
+
+    .matching-blank.is-filled {
+      color: #065f46;
+      font-weight: 700;
+      border-bottom-color: #047857;
+    }
+
+    /* Answer Key Sheet */
+    .answer-key-header {
+      text-align: center;
+      border-bottom: 1.5px solid #0f172a;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+
+    .answer-key-title {
+      margin: 0;
+      font-size: 1.273em;
+      font-weight: 700;
+    }
+
+    .answer-key-subtitle {
+      margin: 3px 0 0;
+      font-size: 0.955em;
+      color: #334155;
+    }
+
+    .answer-key-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(82mm, 1fr));
+      gap: 14px;
+    }
+
+    .answer-key-version {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 10px 12px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .answer-key-version-title {
+      margin: 0 0 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 1.045em;
+      font-weight: 700;
+    }
+
+    .answer-key-sec {
+      margin-bottom: 8px;
+    }
+
+    .answer-key-sec:last-child {
+      margin-bottom: 0;
+    }
+
+    .answer-key-sec-title {
+      font-weight: 700;
+      font-size: 0.91em;
+      color: #1e293b;
+      margin-bottom: 3px;
+      line-height: 1.45;
+    }
+
+    .answer-key-items {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding-left: 8px;
+      font-size: 0.91em;
+      line-height: 1.5;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      border: 1px dashed var(--border-hairline);
+      border-radius: var(--radius-md);
+      background-color: var(--bg-subtle);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.is-error {
+      background-color: var(--danger);
+    }
+
+    /* About Modal */
+    .about-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background-color: rgba(15, 23, 42, 0.42);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      opacity: 0;
+      transition: opacity 0.18s ease;
+    }
+
+    .about-modal-backdrop[hidden] {
+      display: none;
+    }
+
+    .about-modal-backdrop.is-open {
+      opacity: 1;
+    }
+
+    .about-modal {
+      position: relative;
+      width: 100%;
+      max-width: 410px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 28px 26px 22px;
+      box-shadow: 0 22px 50px rgba(15, 23, 42, 0.20);
+      text-align: center;
+      transform: translateY(6px) scale(0.985);
+      transition: transform 0.18s ease;
+    }
+
+    .about-modal-backdrop.is-open .about-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .about-close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .about-close-btn:hover {
+      background-color: var(--bg-subtle);
+      color: var(--text-primary);
+    }
+
+    .about-emblem {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 12px;
+      border-radius: 11px;
+      background-color: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .about-title {
+      margin: 0;
+      font-size: 18.5px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text-primary);
+    }
+
+    .about-version {
+      margin: 4px 0 0;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .about-divider {
+      height: 1px;
+      background-color: var(--border-soft);
+      margin: 18px 0 16px;
+    }
+
+    .about-meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .about-meta-line {
+      margin: 0;
+    }
+
+    .about-meta-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .about-meta-strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .about-license-link {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(29, 78, 216, 0.35);
+      padding-bottom: 1px;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .about-license-link:hover {
+      color: var(--accent-hover);
+      border-bottom-color: var(--accent-hover);
+    }
+
+    .about-footer {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Rich text underline & KaTeX tuning */
+    u {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1.3px;
+    }
+
+    .katex {
+      font-size: 1.05em;
+    }
+
+    /* Extra vertical breathing room applied ONLY to lines containing fractions */
+    .katex.has-frac,
+    .katex:has(.mfrac) {
+      display: inline-block;
+      padding: 0.28em 0;
+      vertical-align: baseline;
+    }
+
+    .katex .mfrac {
+      margin: 0 0.08em;
+    }
+
+    /* Strict Print Styles (@page margin: 0 suppresses browser URL/date/page headers & footers) */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        color: #000000 !important;
+      }
+
+      .no-print,
+      .app-topbar,
+      .editor-column,
+      .preview-toolbar,
+      .toast,
+      .about-modal-backdrop {
+        display: none !important;
+      }
+
+      .workspace {
+        display: block !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      .preview-column,
+      .preview-pages-wrapper {
+        display: block !important;
+        position: static !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+
+      .is-cursor-focused {
+        background-color: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .a4-sheet {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 12.7mm 12.7mm 7.5mm 12.7mm !important;
+        border: 1px solid transparent !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+      }
+
+      .a4-sheet.is-paginated {
+        height: 296mm !important;
+        min-height: 296mm !important;
+        max-height: 296mm !important;
+        overflow: hidden !important;
+      }
+
+      .sheet-footer {
+        margin-top: auto !important;
+        color: #475569 !important;
+      }
+
+      .a4-sheet + .a4-sheet {
+        page-break-before: always;
+        break-before: page;
+      }
+
+      body[data-print-scope="versions-only"] .a4-sheet.answer-key-sheet {
+        display: none !important;
+      }
+
+      body[data-print-scope="answer-key"] .a4-sheet:not(.answer-key-sheet) {
+        display: none !important;
+      }
+
+      body[data-print-scope="answer-key"] .a4-sheet.answer-key-sheet:not(.is-continuation) {
+        page-break-before: auto !important;
+        break-before: auto !important;
+      }
+
+      .sheet-header,
+      .answer-key-header,
+      .exam-section-title {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .exam-section-title {
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .test-question,
+      .matching-block,
+      .writing-lines,
+      .answer-key-version {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .variant-inline-switcher,
+      .matching-switcher-float {
+        display: none !important;
+      }
+
+      .test-question.is-variant-slot,
+      .matching-block.is-variant-slot {
+        border-left: none !important;
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+      }
+
+      .extra-space-lines,
+      .spacer-block {
+        border-left: none !important;
+        padding-left: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar (Hidden on Print) -->
+  <header class="app-topbar no-print">
+    <h1 class="brand-title">Γεννήτρια Διαγωνισμάτων</h1>
+
+    <nav class="topbar-actions" aria-label="Ενέργειες έργου">
+      <button type="button" id="loadSampleBtn" class="topbar-link-btn">Φόρτωση Δείγματος</button>
+      <button type="button" id="importJsonBtn" class="topbar-link-btn">Εισαγωγή .json</button>
+      <button type="button" id="exportJsonBtn" class="topbar-link-btn">Εξαγωγή .json</button>
+      <input type="file" id="importFileInput" accept=".json,application/json" hidden />
+    </nav>
+
+    <div class="topbar-cta">
+      <button type="button" id="printBtn" class="btn btn-primary">Εκτύπωση / Αποθήκευση PDF</button>
+      <button type="button" id="aboutBtn" class="topbar-info-btn" title="Πληροφορίες εφαρμογής" aria-label="Πληροφορίες εφαρμογής" aria-haspopup="dialog">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <!-- Left Column: Settings, Editor, and Interactive Manager (Hidden on Print) -->
+    <section class="editor-column no-print" aria-label="Επεξεργαστής διαγωνίσματος">
+
+      <!-- 1. Test Header & Versions -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">1. Κεφαλίδα &amp; Ομάδες Διαγωνίσματος</h2>
+          <span id="autosaveStatus" class="panel-meta">Μορφή A4 · Στενά περιθώρια</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field full-width">
+            <label for="testTitleInput" class="form-label">Τίτλος Διαγωνίσματος</label>
+            <input type="text" id="testTitleInput" class="input" value="Επαναληπτικό Διαγώνισμα Μαθηματικών - Κλάσματα" />
+          </div>
+
+          <div class="form-field full-width">
+            <label for="testSubtitleInput" class="form-label">Υπότιτλος / Τάξη ή Σχολείο (προαιρετικό)</label>
+            <input type="text" id="testSubtitleInput" class="input" placeholder="π.χ. ΣΤ΄ Τάξη Δημοτικού" />
+          </div>
+
+          <div class="form-field full-width">
+            <label for="studentInfoInput" class="form-label">Στοιχεία Μαθητή (Επάνω Αριστερά)</label>
+            <textarea id="studentInfoInput" class="textarea textarea-student" rows="2"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label for="versionsSelect" class="form-label">Αριθμός Ομάδων</label>
+            <select id="versionsSelect" class="select">
+              <option value="1">1 Ομάδα (Α)</option>
+              <option value="2" selected>2 Ομάδες (Α, Β)</option>
+              <option value="3">3 Ομάδες (Α, Β, Γ)</option>
+              <option value="4">4 Ομάδες (Α, Β, Γ, Δ)</option>
+            </select>
+          </div>
+
+          <div class="form-field" style="justify-content: flex-end; padding-bottom: 6px;">
+            <label id="singleBadgeWrapper" class="checkbox-row" style="display: none;">
+              <input type="checkbox" id="showSingleBadgeCheckbox" />
+              <span>Εμφάνιση ένδειξης «ΟΜΑΔΑ Α»</span>
+            </label>
+            <span id="multiBadgeInfo" class="panel-meta">Αυτόματη ένδειξη ΟΜΑΔΑ Α, Β...</span>
+          </div>
+
+          <div class="form-field full-width">
+            <label class="checkbox-row">
+              <input type="checkbox" id="twoColOptionsCheckbox" checked />
+              <span>Συμπαγής διάταξη επιλογών (1 σειρά για μονολεκτικές/αριθμούς, 2 στήλες για σύντομες προτάσεις)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Structured Question Input & Math Toolbar -->
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">2. Ερωτήσεις &amp; Μαθηματικά Σύμβολα</h2>
+          <button type="button" id="addSectionQuickBtn" class="btn btn-sm btn-secondary-accent">+ Νέα Ενότητα / Τίτλος Άσκησης</button>
+        </div>
+
+        <div class="math-toolbar" role="toolbar" aria-label="Εργαλειοθήκη μαθηματικών και μορφοποίησης">
+          <button type="button" class="tool-btn tool-btn-section" data-snippet="\n=== Άσκηση :  ===\n" data-cursor-offset="12" title="Εισαγωγή τίτλου άσκησης">Τίτλος Άσκησης</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="**" data-wrap-end="**" title="Έντονη γραφή (επιλέξτε κείμενο ή πατήστε για εισαγωγή)"><strong>B</strong>&nbsp;Έντονα</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="<u>" data-wrap-end="</u>" title="Υπογράμμιση (επιλέξτε κείμενο ή πατήστε για εισαγωγή)"><u>U</u>&nbsp;Υπογράμμιση</button>
+          <button type="button" class="tool-btn" data-snippet="$\frac{}{}$" data-cursor-offset="7" title="Κλάσμα">Κλάσμα</button>
+          <button type="button" class="tool-btn" data-snippet="$ \frac{}{}$" data-cursor-offset="1" title="Μεικτός αριθμός">Μεικτός</button>
+          <button type="button" class="tool-btn" data-snippet="$^{}$" data-cursor-offset="1" title="Δύναμη">Δύναμη</button>
+          <button type="button" class="tool-btn" data-snippet="$\cdot$" title="Πολλαπλασιασμός (τελεία)">·</button>
+          <button type="button" class="tool-btn" data-snippet="$\times$" title="Πολλαπλασιασμός (×)">×</button>
+          <button type="button" class="tool-btn" data-snippet="$\div$" title="Διαίρεση">÷</button>
+          <button type="button" class="tool-btn" data-snippet="$\neq$" title="Διάφορο">≠</button>
+          <button type="button" class="tool-btn" data-snippet="$\le$" title="Μικρότερο ή ίσο">≤</button>
+          <button type="button" class="tool-btn" data-snippet="$\ge$" title="Μεγαλύτερο ή ίσο">≥</button>
+          <button type="button" class="tool-btn" data-snippet=" == " title="Διαχωριστικό αντιστοίχισης">==</button>
+          <button type="button" class="tool-btn" data-snippet=" || " title="Εναλλακτική απάντηση ανά ομάδα">Εναλλακτική ||</button>
+          <button type="button" class="tool-btn" data-snippet="\n---\n" title="Εναλλακτική ερώτηση για την ίδια θέση (διαφορετική εκφώνηση &amp; απαντήσεις ανά ομάδα)">Εναλλακτική Ερώτηση ---</button>
+          <button type="button" class="tool-btn" data-snippet="\n[lines:4]" title="Γραμμές γραφής μαθητή">[lines:4]</button>
+          <button type="button" class="tool-btn" data-snippet="\n[space:2]" title="Έξτρα κενές σειρές (χωρίς γραμμές) για υπολογισμούς ή κενό χώρο">[space:2]</button>
+        </div>
+
+        <textarea
+          id="questionsInput"
+          class="textarea textarea-questions"
+          spellcheck="false"
+          aria-label="Κείμενο ερωτήσεων διαγωνίσματος"
+        ></textarea>
+
+        <div class="syntax-help">
+          <strong>Κανόνες σύνταξης (χωρίστε τα μπλοκ με μια κενή γραμμή):</strong><br />
+          • Ενότητα άσκησης: <code>=== Άσκηση 1: Τίτλος ===</code><br />
+          • Πολλαπλής επιλογής: 1η γραμμή η ερώτηση, από κάτω οι επιλογές, με <code>*</code> μπροστά στη σωστή.<br />
+          • Εναλλακτικές λάθος απαντήσεις: χωρίστε με <code>||</code> (π.χ. <code>$20$ || $25$ || $18$</code>) για επιλογή διαφορετικής απάντησης ανά ομάδα.<br />
+          • Εναλλακτικές ερωτήσεις (ίδια θέση): χωρίστε δύο εκδοχές ερώτησης με <code>---</code> (ή <code>[ή]</code>) σε ξεχωριστή γραμμή.<br />
+          • Αντιστοίχιση: ζεύγη με <code>==</code> (π.χ. <code>$\frac{1}{2}$ == $0,5$</code>).<br />
+          • Ανοιχτό πρόβλημα &amp; κενός χώρος: προσθέστε <code>[lines:4]</code> για γραμμές γραφής ή <code>[space:2]</code> για έξτρα κενές σειρές κάτω από οποιαδήποτε ερώτηση (ή αυτόνομα).<br />
+          • Μορφοποίηση κειμένου: <code>**έντονα**</code> και <code>&lt;u&gt;υπογράμμιση&lt;/u&gt;</code> (ή <code>__υπογράμμιση__</code>).
+        </div>
+      </div>
+
+      <!-- 3. Interactive Question & Section Manager -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">3. Διαχείριση Ενοτήτων &amp; Κλειδωμάτων</h2>
+            <span id="managerSummary" class="panel-meta">0 ενότητες · 0 ερωτήσεις</span>
+          </div>
+          <button type="button" id="shuffleBtn" class="btn btn-primary btn-sm">Νέο Ανακάτεμα</button>
+        </div>
+
+        <div id="managerContainer" class="manager-list"></div>
+      </div>
+
+    </section>
+
+    <!-- Right Column: Live A4 Print Preview -->
+    <section class="preview-column" aria-label="Προεπισκόπηση εκτύπωσης A4">
+      <div class="preview-toolbar no-print">
+        <div id="previewNav" class="preview-nav"></div>
+        <div class="preview-toolbar-actions">
+          <div class="spacing-control" title="Ρύθμιση διάκενου μεταξύ ερωτήσεων (κλικ στον αριθμό για επαναφορά στα 8px)">
+            <span class="spacing-control-label">Διάκενο</span>
+            <button type="button" id="gapDecBtn" class="spacing-step-btn" aria-label="Μείωση διάκενου ερωτήσεων">−</button>
+            <button type="button" id="gapValueBtn" class="spacing-value-btn" title="Κλικ για επαναφορά στα 8px">8px</button>
+            <button type="button" id="gapIncBtn" class="spacing-step-btn" aria-label="Αύξηση διάκενου ερωτήσεων">+</button>
+          </div>
+          <div class="spacing-control" title="Μέγεθος γραμματοσειράς φύλλου Α4 (π.χ. 14pt+ για εκτύπωση 2-σε-1 · κλικ στον αριθμό για 11pt)">
+            <span class="spacing-control-label">Γραμματοσειρά</span>
+            <button type="button" id="fontDecBtn" class="spacing-step-btn" aria-label="Μείωση μεγέθους γραμματοσειράς">−</button>
+            <button type="button" id="fontValueBtn" class="spacing-value-btn" title="Κλικ για επαναφορά στα 11pt">11pt</button>
+            <button type="button" id="fontIncBtn" class="spacing-step-btn" aria-label="Αύξηση μεγέθους γραμματοσειράς">+</button>
+          </div>
+          <button type="button" id="resetLayoutDefaultsBtn" class="spacing-reset-btn" title="Επαναφορά διάκενου (8px) και γραμματοσειράς (11pt) στις προεπιλεγμένες τιμές" disabled>↺ Προεπιλογή</button>
+          <label class="checkbox-row preview-sync-toggle" title="Αυτόματη εστίαση στην ερώτηση που γράφετε (στην προβολή «Όπως γράφεται»)">
+            <input type="checkbox" id="syncCursorCheckbox" checked />
+            <span>Παρακολούθηση κέρσορα</span>
+          </label>
+          <button type="button" id="shuffleBtnSecondary" class="btn btn-sm btn-secondary-accent">Ανακάτεμα Ομάδων</button>
+        </div>
+      </div>
+
+      <div id="previewPagesWrapper" class="preview-pages-wrapper">
+        <div id="previewContainer"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- About Application Modal (Hidden on Print) -->
+  <div id="aboutModalBackdrop" class="about-modal-backdrop no-print" hidden role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+    <div class="about-modal">
+      <button type="button" id="aboutCloseIconBtn" class="about-close-btn" aria-label="Κλείσιμο παραθύρου">&times;</button>
+
+      <div class="about-emblem" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="8" y1="13" x2="16" y2="13"></line>
+          <line x1="8" y1="17" x2="13" y2="17"></line>
+        </svg>
+      </div>
+
+      <h2 id="aboutModalTitle" class="about-title">Γεννήτρια Διαγωνισμάτων</h2>
+      <p id="aboutVersionText" class="about-version"></p>
+
+      <div class="about-divider"></div>
+
+      <div class="about-meta-list">
+        <p class="about-meta-line">
+          <span class="about-meta-label">Program Architect:</span>
+          <span class="about-meta-strong">George Petrakis</span>
+        </p>
+        <p class="about-meta-line">
+          Copyright &copy; 2026 George Petrakis
+        </p>
+        <p class="about-meta-line">
+          <span class="about-meta-label">Άδεια χρήσης:</span>
+          <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer" class="about-license-link">GNU GPLv3</a>
+        </p>
+      </div>
+
+      <div class="about-footer">
+        <button type="button" id="aboutCloseBtn" class="btn btn-sm">Κλείσιμο</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Γεννήτρια Διαγωνισμάτων - Εφαρμογή δημιουργίας και εκτύπωσης διαγωνισμάτων
+     * Program Architect: George Petrakis
+     * Copyright (C) 2026 George Petrakis
+     *
+     * This program is free software: you can redistribute it and/or modify
+     * it under the terms of the GNU General Public License as published by
+     * the Free Software Foundation, either version 3 of the License, or
+     * (at your option) any later version.
+     *
+     * This program is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+     * GNU General Public License for more details.
+     *
+     * You should have received a copy of the GNU General Public License
+     * along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.html>.
+     */
+    (function () {
+      'use strict';
+
+      // =========================================================================
+      // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - Αλλάξτε χειροκίνητα την τιμή της σταθεράς παρακάτω
+      // =========================================================================
+      const APP_VERSION = '1.2.0';
+
+      const GREEK_LETTERS = ['α', 'β', 'γ', 'δ', 'ε', 'στ', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν'];
+      const GROUP_NAMES = ['Α', 'Β', 'Γ', 'Δ'];
+
+      const DEFAULT_STUDENT_INFO = 'Ονοματεπώνυμο: ______________________\nΗμερομηνία: _______________';
+      const DEFAULT_TITLE = 'Επαναληπτικό Διαγώνισμα Μαθηματικών - Κλάσματα';
+
+      const SAMPLE_TEST_TEXT = [
+        '=== Άσκηση 1: Πολλαπλής Επιλογής ===',
+        '',
+        'Ποιο είναι το αποτέλεσμα της πρόσθεσης $\\frac{2}{5} + \\frac{1}{2}$;',
+        '$\\frac{3}{7}$',
+        '*$\\frac{9}{10}$',
+        '$\\frac{3}{10}$',
+        '$\\frac{2}{7}$',
+        '',
+        'Πόσο κάνει η αριθμητική παράσταση $2^3 \\cdot 5 - 10$;',
+        '$20$',
+        '*$30$',
+        '$40$',
+        '$15$',
+        '',
+        'Ποιο είναι το γινόμενο $1\\frac{1}{2} \\cdot \\frac{4}{3}$;',
+        '*$2$',
+        '$\\frac{4}{6}$',
+        '$1\\frac{2}{3}$',
+        'Κανένα από τα παραπάνω',
+        '',
+        '=== Άσκηση 2: Να αντιστοιχίσετε κάθε κλάσμα με τον ισοδύναμο δεκαδικό αριθμό ===',
+        '',
+        '$\\frac{1}{2}$ == $0,5$',
+        '$\\frac{3}{4}$ == $0,75$',
+        '$\\frac{2}{5}$ == $0,4$',
+        '$\\frac{1}{8}$ == $0,125$',
+        '',
+        '=== Άσκηση 3: Πρόβλημα ===',
+        '',
+        'Ένας ποδηλάτης διάνυσε τα $\\frac{3}{5}$ μιας διαδρομής μήκους $45\\text{ χλμ.}$ το πρωί και το $\\frac{1}{3}$ της υπόλοιπης διαδρομής το απόγευμα. Πόσα χιλιόμετρα του έμειναν ακόμα για να φτάσει στον προορισμό του;',
+        '[lines:4]'
+      ].join('\n');
+
+      const AUTOSAVE_STORAGE_KEY = 'primary_math_test_autosave_v1';
+      const AUTOSAVE_DEBOUNCE_MS = 1800;
+      const DEFAULT_QUESTION_GAP = 8;
+      const MIN_QUESTION_GAP = 4;
+      const MAX_QUESTION_GAP = 72;
+      const QUESTION_GAP_STEP = 2;
+      const DEFAULT_FONT_SIZE = 11;
+      const MIN_FONT_SIZE = 10;
+      const MAX_FONT_SIZE = 18;
+      const FONT_SIZE_STEP = 0.5;
+
+      // Application State
+      const state = {
+        header: {
+          title: DEFAULT_TITLE,
+          subtitle: '',
+          studentInfo: DEFAULT_STUDENT_INFO,
+          numVersions: 2,
+          showSingleBadge: false,
+          twoColumnOptions: true,
+          questionGap: DEFAULT_QUESTION_GAP,
+          fontSize: DEFAULT_FONT_SIZE
+        },
+        rawText: SAMPLE_TEST_TEXT,
+        sections: [],
+        generatedVersions: [],
+        previewMode: 'original',
+        activeNavTarget: 'original',
+        activeVariantByKey: {},
+        activeOptVariantByKey: {},
+        syncCursor: true
+      };
+
+      let isDirty = false;
+      let autosaveTimer = null;
+
+      // DOM References
+      const els = {
+        testTitleInput: document.getElementById('testTitleInput'),
+        testSubtitleInput: document.getElementById('testSubtitleInput'),
+        studentInfoInput: document.getElementById('studentInfoInput'),
+        versionsSelect: document.getElementById('versionsSelect'),
+        singleBadgeWrapper: document.getElementById('singleBadgeWrapper'),
+        showSingleBadgeCheckbox: document.getElementById('showSingleBadgeCheckbox'),
+        multiBadgeInfo: document.getElementById('multiBadgeInfo'),
+        twoColOptionsCheckbox: document.getElementById('twoColOptionsCheckbox'),
+        autosaveStatus: document.getElementById('autosaveStatus'),
+        questionsInput: document.getElementById('questionsInput'),
+        managerContainer: document.getElementById('managerContainer'),
+        managerSummary: document.getElementById('managerSummary'),
+        previewPagesWrapper: document.getElementById('previewPagesWrapper'),
+        previewContainer: document.getElementById('previewContainer'),
+        previewNav: document.getElementById('previewNav'),
+        gapDecBtn: document.getElementById('gapDecBtn'),
+        gapValueBtn: document.getElementById('gapValueBtn'),
+        gapIncBtn: document.getElementById('gapIncBtn'),
+        fontDecBtn: document.getElementById('fontDecBtn'),
+        fontValueBtn: document.getElementById('fontValueBtn'),
+        fontIncBtn: document.getElementById('fontIncBtn'),
+        resetLayoutDefaultsBtn: document.getElementById('resetLayoutDefaultsBtn'),
+        syncCursorCheckbox: document.getElementById('syncCursorCheckbox'),
+        loadSampleBtn: document.getElementById('loadSampleBtn'),
+        importJsonBtn: document.getElementById('importJsonBtn'),
+        exportJsonBtn: document.getElementById('exportJsonBtn'),
+        importFileInput: document.getElementById('importFileInput'),
+        printBtn: document.getElementById('printBtn'),
+        shuffleBtn: document.getElementById('shuffleBtn'),
+        shuffleBtnSecondary: document.getElementById('shuffleBtnSecondary'),
+        addSectionQuickBtn: document.getElementById('addSectionQuickBtn'),
+        aboutBtn: document.getElementById('aboutBtn'),
+        aboutModalBackdrop: document.getElementById('aboutModalBackdrop'),
+        aboutVersionText: document.getElementById('aboutVersionText'),
+        aboutCloseIconBtn: document.getElementById('aboutCloseIconBtn'),
+        aboutCloseBtn: document.getElementById('aboutCloseBtn'),
+        toast: document.getElementById('toast')
+      };
+
+      let toastTimer = null;
+
+      function showToast(message, isError = false) {
+        els.toast.textContent = message;
+        els.toast.classList.toggle('is-error', isError);
+        els.toast.classList.add('is-visible');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          els.toast.classList.remove('is-visible');
+        }, 3200);
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // Upgrade \frac to \dfrac and convert \vspace{...} to KaTeX-compatible vertical rule inside math segments
+      function upgradeMathFractions(mathSegment) {
+        const withVspace = mathSegment.replace(/\\vspace\{([^{}]+)\}/g, function (_, dim) {
+          return `\\rule{0pt}{${dim.trim()}}`;
+        });
+        return withVspace.replace(/(\\[a-zA-Z]+|\\[^a-zA-Z])/g, function (token) {
+          return token === '\\frac' ? '\\dfrac' : token;
+        });
+      }
+
+      // Safely format bold (**...**), underline (<u>...</u> or __...__), inline [space:N], and full-size fractions in math
+      function formatRichMathText(rawStr) {
+        const input = String(rawStr || '');
+        const mathTokens = [];
+        const mathRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$(?:\\.|[^$\\\n])+\$)/g;
+
+        // 1. Protect math blocks and upgrade \frac -> \dfrac
+        const withPlaceholders = input.replace(mathRegex, function (match) {
+          const idx = mathTokens.length;
+          mathTokens.push(escapeHtml(upgradeMathFractions(match)));
+          return '\u0001MATH_' + idx + '\u0001';
+        });
+
+        // 2. Escape HTML on plain text outside math blocks
+        let formatted = escapeHtml(withPlaceholders);
+
+        // 3. Apply bold (**text**), underline (<u>text</u> or __text__), and inline [space:N]
+        formatted = formatted
+          .replace(/&lt;u&gt;([\s\S]+?)&lt;\/u&gt;/gi, '<u>$1</u>')
+          .replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/(^|[^_])__([^\s_](?:[^_\n]*?[^\s_])?)__(?=[^_]|$)/g, '$1<u>$2</u>')
+          .replace(/\[(?:space|blank|κεν[όο]):\s*(\d+)\s*\]/gi, function (_, nStr) {
+            const count = Math.min(24, Math.max(1, parseInt(nStr, 10) || 1));
+            return `<span class="inline-space-break" style="height: calc(${count} * 8.5mm);"></span>`;
+          });
+
+        // 4. Restore math blocks
+        return formatted.replace(/\u0001MATH_(\d+)\u0001/g, function (_, idx) {
+          return mathTokens[Number(idx)] || '';
+        });
+      }
+
+      function normalizeKey(str) {
+        return String(str || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      }
+
+      // Fisher-Yates (Knuth) Shuffle - returns a new shuffled array
+      function fisherYatesShuffle(arr) {
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = copy[i];
+          copy[i] = copy[j];
+          copy[j] = temp;
+        }
+        return copy;
+      }
+
+      // Split multiple-choice option variants separated by || outside math delimiters
+      function splitVariantsOutsideMath(str) {
+        const input = String(str || '');
+        const mathTokens = [];
+        const mathRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$(?:\\.|[^$\\\n])+\$)/g;
+        const protectedStr = input.replace(mathRegex, (match) => {
+          const idx = mathTokens.length;
+          mathTokens.push(match);
+          return '\u0001M' + idx + '\u0001';
+        });
+        const parts = protectedStr
+          .split(/\s*\|\|\s*/)
+          .map((part) =>
+            part
+              .replace(/\u0001M(\d+)\u0001/g, (_, idx) => mathTokens[Number(idx)] || '')
+              .trim()
+          )
+          .filter((part) => part.length > 0);
+        return parts.length > 0 ? parts : [input.trim()];
+      }
+
+      function parseSingleQuestionBlock(lines, secId, qIdx) {
+        const spaceLineRegex = /^\[(?:space|blank|κεν[όο]):\s*(\d+)\s*\]$/i;
+        const inlineSpaceRegex = /\s*\[(?:space|blank|κεν[όο]):\s*(\d+)\s*\]$/i;
+        const linesDirectiveRegex = /^\[lines:\s*(\d+)\s*\]$/i;
+        const inlineLinesRegex = /\s*\[lines:\s*(\d+)\s*\]$/i;
+
+        // Standalone blank-space block ([space:N] on its own block)
+        if (lines.length === 1 && spaceLineRegex.test(lines[0])) {
+          const spMatch = lines[0].match(spaceLineRegex);
+          return {
+            id: 'q_' + secId + '_' + qIdx,
+            type: 'spacer',
+            spaceLines: Math.min(24, Math.max(1, parseInt(spMatch[1], 10) || 1)),
+            locked: true,
+            lockMode: 'exact',
+            lockMin: null,
+            lockMax: null,
+            matchKey: 'spacer:' + secId + ':' + qIdx
+          };
+        }
+
+        // Extract trailing [space:N] / [lines:N] directives from any question block
+        const workLines = lines.slice();
+        let extraSpaceLines = 0;
+        let attachedWritingLines = 0;
+
+        while (workLines.length > 1) {
+          const last = workLines[workLines.length - 1];
+          const spMatch = last.match(spaceLineRegex);
+          if (spMatch) {
+            extraSpaceLines += Math.min(24, Math.max(1, parseInt(spMatch[1], 10) || 1));
+            workLines.pop();
+            continue;
+          }
+          const lnMatch = last.match(linesDirectiveRegex);
+          if (lnMatch) {
+            attachedWritingLines = Math.min(20, Math.max(0, parseInt(lnMatch[1], 10) || 0));
+            workLines.pop();
+            continue;
+          }
+          break;
+        }
+
+        // Check inline trailing [space:N] or [lines:N] on the last line
+        if (workLines.length > 0) {
+          let last = workLines[workLines.length - 1];
+          const inlineSp = last.match(inlineSpaceRegex);
+          if (inlineSp) {
+            extraSpaceLines += Math.min(24, Math.max(1, parseInt(inlineSp[1], 10) || 1));
+            last = last.replace(inlineSpaceRegex, '').trim();
+          }
+          const inlineLn = last.match(inlineLinesRegex);
+          if (inlineLn && workLines.length === 1) {
+            attachedWritingLines = Math.min(20, Math.max(0, parseInt(inlineLn[1], 10) || 0));
+            last = last.replace(inlineLinesRegex, '').trim();
+          }
+          workLines[workLines.length - 1] = last;
+        }
+        extraSpaceLines = Math.min(24, extraSpaceLines);
+
+        // Matching Exercise (contains ==)
+        const hasMatching = workLines.some((line) => line.includes('=='));
+        if (hasMatching) {
+          let prompt = '';
+          const pairs = [];
+          workLines.forEach((line, idx) => {
+            if (line.includes('==')) {
+              const sepIdx = line.indexOf('==');
+              const left = line.slice(0, sepIdx).trim();
+              const right = line.slice(sepIdx + 2).trim();
+              pairs.push({
+                pairId: 'p_' + idx,
+                left: left,
+                right: right
+              });
+            } else if (idx === 0 && pairs.length === 0) {
+              prompt = line;
+            }
+          });
+
+          const keySeed = 'match:' + normalizeKey(prompt) + ':' + pairs.map((p) => normalizeKey(p.left)).join('|');
+          return {
+            id: 'q_' + secId + '_' + qIdx,
+            type: 'matching',
+            prompt: prompt,
+            pairs: pairs,
+            extraSpaceLines: extraSpaceLines,
+            locked: false,
+            lockMode: 'none',
+            lockMin: null,
+            lockMax: null,
+            lockColA: true,
+            matchKey: keySeed
+          };
+        }
+
+        // Open-Ended Question (single remaining line)
+        if (workLines.length === 1) {
+          return {
+            id: 'q_' + secId + '_' + qIdx,
+            type: 'open',
+            prompt: workLines[0],
+            writingLines: attachedWritingLines,
+            extraSpaceLines: extraSpaceLines,
+            locked: false,
+            lockMode: 'none',
+            lockMin: null,
+            lockMax: null,
+            matchKey: 'open:' + normalizeKey(workLines[0])
+          };
+        }
+
+        // Multiple-Choice Question
+        const mcPrompt = workLines[0];
+        const options = workLines.slice(1).map((optLine, optIdx) => {
+          const isCorrect =
+            (optLine.startsWith('*') && !optLine.startsWith('**')) ||
+            (optLine.startsWith('***') && optLine.length > 3);
+          const rawOptText = isCorrect ? optLine.slice(1).trim() : optLine;
+          const variants = splitVariantsOutsideMath(rawOptText);
+          return {
+            optId: 'opt_' + optIdx,
+            text: variants[0],
+            variants: variants,
+            isCorrect: isCorrect
+          };
+        });
+
+        const lastOptText = options.length > 1 ? normalizeKey(options[options.length - 1].text) : '';
+        const autoLockLast = lastOptText.includes('κανένα από') || lastOptText.includes('όλα τα παραπάνω');
+
+        return {
+          id: 'q_' + secId + '_' + qIdx,
+          type: 'mc',
+          prompt: mcPrompt,
+          options: options,
+          extraSpaceLines: extraSpaceLines,
+          locked: false,
+          lockMode: 'none',
+          lockMin: null,
+          lockMax: null,
+          lockLastOption: autoLockLast,
+          matchKey: 'mc:' + normalizeKey(mcPrompt)
+        };
+      }
+
+      // Parse raw textarea content into structured sections & questions while preserving lock states
+      function parseRawText(rawText, previousSections) {
+        const normalized = String(rawText || '').replace(/\r\n/g, '\n');
+
+        // Pre-split === ... === headers and --- / [ή] separators while tracking source offsets
+        const rawLines = normalized.split('\n');
+        const expandedRecords = [];
+        const altSepRegex = /^(-{3,}|\[ή\])$/i;
+        let charPos = 0;
+
+        for (let i = 0; i < rawLines.length; i++) {
+          const lineText = rawLines[i];
+          const lineStart = charPos;
+          const lineEnd = charPos + lineText.length;
+          charPos = lineEnd + 1;
+
+          const trimmed = lineText.trim();
+          if (trimmed.startsWith('===') || altSepRegex.test(trimmed)) {
+            if (expandedRecords.length > 0 && expandedRecords[expandedRecords.length - 1].text.trim() !== '') {
+              expandedRecords.push({ text: '', start: -1, end: -1 });
+            }
+            expandedRecords.push({ text: lineText, start: lineStart, end: lineEnd });
+            if (i + 1 < rawLines.length && rawLines[i + 1].trim() !== '') {
+              expandedRecords.push({ text: '', start: -1, end: -1 });
+            }
+          } else {
+            expandedRecords.push({ text: lineText, start: lineStart, end: lineEnd });
+          }
+        }
+
+        const blocks = [];
+        let activeBlock = null;
+        for (let i = 0; i < expandedRecords.length; i++) {
+          const rec = expandedRecords[i];
+          const trimmed = rec.text.trim();
+          if (trimmed.length === 0) {
+            if (activeBlock) {
+              blocks.push(activeBlock);
+              activeBlock = null;
+            }
+          } else {
+            if (!activeBlock) {
+              activeBlock = { lines: [], start: rec.start, end: rec.end };
+            }
+            activeBlock.lines.push(trimmed);
+            if (rec.start >= 0 && (activeBlock.start < 0 || rec.start < activeBlock.start)) {
+              activeBlock.start = rec.start;
+            }
+            if (rec.end >= 0 && rec.end > activeBlock.end) {
+              activeBlock.end = rec.end;
+            }
+          }
+        }
+        if (activeBlock) {
+          blocks.push(activeBlock);
+        }
+
+        const parsedSections = [];
+        let currentSection = null;
+        let mergeNextWithPrev = false;
+
+        function ensureSection() {
+          if (!currentSection) {
+            currentSection = {
+              id: 'sec_' + parsedSections.length,
+              title: '',
+              isImplicit: true,
+              locked: true,
+              questions: []
+            };
+            parsedSections.push(currentSection);
+          }
+          return currentSection;
+        }
+
+        for (let bIdx = 0; bIdx < blocks.length; bIdx++) {
+          const block = blocks[bIdx];
+          const lines = block.lines;
+          if (lines.length === 0) continue;
+
+          // 1. Exercise Section Header (=== ... ===)
+          if (lines[0].startsWith('===')) {
+            mergeNextWithPrev = false;
+            let cleanTitle = lines[0].replace(/^=+/, '').replace(/=+$/, '').trim();
+            if (!cleanTitle) {
+              cleanTitle = 'Ενότητα ' + (parsedSections.length + 1);
+            }
+            currentSection = {
+              id: 'sec_' + parsedSections.length,
+              title: cleanTitle,
+              isImplicit: false,
+              locked: true,
+              sourceStart: block.start,
+              sourceEnd: block.end,
+              questions: []
+            };
+            parsedSections.push(currentSection);
+            continue;
+          }
+
+          // 2. Alternative Question Separator (--- or [ή])
+          if (lines.length === 1 && altSepRegex.test(lines[0])) {
+            if (currentSection && currentSection.questions.length > 0) {
+              mergeNextWithPrev = true;
+            }
+            continue;
+          }
+
+          const sec = ensureSection();
+          const parsedQ = parseSingleQuestionBlock(lines, sec.id, sec.questions.length);
+          parsedQ.sourceStart = block.start;
+          parsedQ.sourceEnd = block.end;
+
+          if (mergeNextWithPrev && sec.questions.length > 0) {
+            const prevItem = sec.questions[sec.questions.length - 1];
+            if (prevItem.type === 'variant_group') {
+              prevItem.variants.push(parsedQ);
+              prevItem.sourceEnd = block.end;
+            } else {
+              sec.questions[sec.questions.length - 1] = {
+                id: prevItem.id,
+                type: 'variant_group',
+                variants: [prevItem, parsedQ],
+                locked: prevItem.locked,
+                lockMode: prevItem.lockMode || (prevItem.locked ? 'exact' : 'none'),
+                lockMin: Number.isFinite(Number(prevItem.lockMin)) ? Number(prevItem.lockMin) : null,
+                lockMax: Number.isFinite(Number(prevItem.lockMax)) ? Number(prevItem.lockMax) : null,
+                sourceStart: prevItem.sourceStart,
+                sourceEnd: block.end,
+                matchKey: 'vgroup:' + prevItem.matchKey
+              };
+            }
+            mergeNextWithPrev = false;
+          } else {
+            mergeNextWithPrev = false;
+            sec.questions.push(parsedQ);
+          }
+        }
+
+        // Preserve lock states from previousSections
+        if (Array.isArray(previousSections) && previousSections.length > 0) {
+          const prevSecByTitle = new Map();
+          const prevQuestionsByKey = new Map();
+
+          previousSections.forEach((pSec, sIdx) => {
+            prevSecByTitle.set(normalizeKey(pSec.title) + '::' + sIdx, pSec);
+            if (!prevSecByTitle.has(normalizeKey(pSec.title))) {
+              prevSecByTitle.set(normalizeKey(pSec.title), pSec);
+            }
+            pSec.questions.forEach((pQ) => {
+              if (!prevQuestionsByKey.has(pQ.matchKey)) {
+                prevQuestionsByKey.set(pQ.matchKey, pQ);
+              }
+              if (pQ.type === 'variant_group' && Array.isArray(pQ.variants) && pQ.variants[0]) {
+                if (!prevQuestionsByKey.has(pQ.variants[0].matchKey)) {
+                  prevQuestionsByKey.set(pQ.variants[0].matchKey, pQ);
+                }
+              }
+            });
+          });
+
+          parsedSections.forEach((sec, sIdx) => {
+            const matchedSec =
+              prevSecByTitle.get(normalizeKey(sec.title) + '::' + sIdx) ||
+              prevSecByTitle.get(normalizeKey(sec.title)) ||
+              previousSections[sIdx];
+
+            if (matchedSec) {
+              sec.locked = Boolean(matchedSec.locked);
+            }
+
+            sec.questions.forEach((q, qIdx) => {
+              let matchedQ = prevQuestionsByKey.get(q.matchKey);
+              if (!matchedQ && q.type === 'variant_group' && q.variants[0]) {
+                matchedQ = prevQuestionsByKey.get(q.variants[0].matchKey);
+              }
+              if (!matchedQ && q.type !== 'variant_group') {
+                matchedQ = prevQuestionsByKey.get('vgroup:' + q.matchKey);
+              }
+              if (!matchedQ && matchedSec && matchedSec.questions[qIdx]) {
+                const posCandidate = matchedSec.questions[qIdx];
+                if (posCandidate.type === q.type || q.type === 'variant_group' || posCandidate.type === 'variant_group') {
+                  matchedQ = posCandidate;
+                }
+              }
+              if (matchedQ) {
+                const restoredMode =
+                  matchedQ.lockMode === 'range' || matchedQ.lockMode === 'exact' || matchedQ.lockMode === 'none'
+                    ? matchedQ.lockMode
+                    : (matchedQ.locked ? 'exact' : 'none');
+                q.lockMode = restoredMode;
+                q.locked = restoredMode === 'exact';
+                q.lockMin = Number.isFinite(Number(matchedQ.lockMin)) ? Number(matchedQ.lockMin) : null;
+                q.lockMax = Number.isFinite(Number(matchedQ.lockMax)) ? Number(matchedQ.lockMax) : null;
+                if (q.type === 'variant_group') {
+                  q.variants.forEach((vq, vIdx) => {
+                    const matchedV =
+                      matchedQ.type === 'variant_group' && Array.isArray(matchedQ.variants)
+                        ? matchedQ.variants.find((mv) => mv.matchKey === vq.matchKey) || matchedQ.variants[vIdx]
+                        : vIdx === 0
+                          ? matchedQ
+                          : null;
+                    if (matchedV) {
+                      if (vq.type === 'mc' && typeof matchedV.lockLastOption === 'boolean') {
+                        vq.lockLastOption = matchedV.lockLastOption;
+                      }
+                      if (vq.type === 'matching' && typeof matchedV.lockColA === 'boolean') {
+                        vq.lockColA = matchedV.lockColA;
+                      }
+                    }
+                  });
+                } else {
+                  const sourceForFlags =
+                    matchedQ.type === 'variant_group' && Array.isArray(matchedQ.variants)
+                      ? matchedQ.variants.find((mv) => mv.matchKey === q.matchKey) || matchedQ.variants[0]
+                      : matchedQ;
+                  if (sourceForFlags) {
+                    if (q.type === 'mc' && typeof sourceForFlags.lockLastOption === 'boolean') {
+                      q.lockLastOption = sourceForFlags.lockLastOption;
+                    }
+                    if (q.type === 'matching' && typeof sourceForFlags.lockColA === 'boolean') {
+                      q.lockColA = sourceForFlags.lockColA;
+                    }
+                  }
+                }
+              }
+            });
+          });
+        }
+
+        return parsedSections;
+      }
+
+      // Normalize question lock configuration ('none' | 'exact' | 'range')
+      function getQuestionLockConfig(q, numberedCount, currentPosNum) {
+        if (!q || q.type === 'spacer') {
+          return { mode: 'exact', pos: currentPosNum };
+        }
+        const rawMode =
+          q.lockMode === 'range' || q.lockMode === 'exact' || q.lockMode === 'none'
+            ? q.lockMode
+            : (q.locked ? 'exact' : 'none');
+
+        if (rawMode === 'exact') {
+          return { mode: 'exact', pos: currentPosNum };
+        }
+        if (rawMode === 'range' && numberedCount > 0) {
+          const rawMin = Number(q.lockMin);
+          const rawMax = Number(q.lockMax);
+          const minVal = Number.isFinite(rawMin)
+            ? Math.min(numberedCount, Math.max(1, Math.round(rawMin)))
+            : currentPosNum;
+          const maxVal = Number.isFinite(rawMax)
+            ? Math.min(numberedCount, Math.max(minVal, Math.round(rawMax)))
+            : Math.min(numberedCount, Math.max(minVal, currentPosNum));
+          return { mode: 'range', min: minVal, max: maxVal };
+        }
+        return { mode: 'none' };
+      }
+
+      // Build list of constrained items & their allowed 0-based numbered slot indices
+      function extractSectionLockConstraints(questions) {
+        const numberedItems = [];
+        const numberedSlotIndices = [];
+
+        questions.forEach((item, idx) => {
+          if (item.type !== 'spacer') {
+            numberedItems.push(item);
+            numberedSlotIndices.push(idx);
+          }
+        });
+
+        const total = numberedItems.length;
+        const constrained = [];
+        const unlocked = [];
+
+        numberedItems.forEach((item, idx) => {
+          const posNum = idx + 1;
+          const cfg = getQuestionLockConfig(item, total, posNum);
+          if (cfg.mode === 'exact') {
+            constrained.push({
+              item: item,
+              origIdx: idx,
+              allowed: [posNum - 1]
+            });
+          } else if (cfg.mode === 'range') {
+            const allowed = [];
+            for (let p = cfg.min - 1; p <= cfg.max - 1; p++) {
+              allowed.push(p);
+            }
+            constrained.push({
+              item: item,
+              origIdx: idx,
+              allowed: allowed
+            });
+          } else {
+            unlocked.push(item);
+          }
+        });
+
+        return { numberedItems, numberedSlotIndices, total, constrained, unlocked };
+      }
+
+      // Kuhn's maximum bipartite matching (+ Hall conflict witness extraction for failed nodes)
+      function findMaximumBipartiteMatching(constrained, numSlots, randomize) {
+        const ordered = randomize ? fisherYatesShuffle(constrained) : constrained.slice();
+        const adj = ordered.map((c) => (randomize ? fisherYatesShuffle(c.allowed) : c.allowed.slice()));
+        const slotOwner = new Array(numSlots).fill(-1);
+        const itemSlot = new Array(ordered.length).fill(-1);
+        const conflictNodes = new Set();
+
+        for (let i = 0; i < ordered.length; i++) {
+          const visitedSlots = new Array(numSlots).fill(false);
+          const visitedLeft = new Set([i]);
+
+          function dfs(u) {
+            visitedLeft.add(u);
+            const candidates = adj[u];
+            for (let k = 0; k < candidates.length; k++) {
+              const s = candidates[k];
+              if (visitedSlots[s]) continue;
+              visitedSlots[s] = true;
+              const prevU = slotOwner[s];
+              if (prevU === -1 || dfs(prevU)) {
+                slotOwner[s] = u;
+                itemSlot[u] = s;
+                return true;
+              }
+            }
+            return false;
+          }
+
+          if (!dfs(i)) {
+            visitedLeft.forEach((uIdx) => conflictNodes.add(ordered[uIdx].item));
+          }
+        }
+
+        const assignment = new Map();
+        for (let i = 0; i < ordered.length; i++) {
+          if (itemSlot[i] !== -1) {
+            assignment.set(ordered[i].item, itemSlot[i]);
+          }
+        }
+
+        return {
+          ordered,
+          assignment,
+          matchedCount: assignment.size,
+          allMatched: assignment.size === ordered.length,
+          conflictItems: conflictNodes
+        };
+      }
+
+      // Analyze whether all position/range locks in a section can be satisfied simultaneously
+      function analyzeSectionLockConstraints(questions) {
+        const { total, constrained } = extractSectionLockConstraints(questions);
+        if (total <= 1 || constrained.length === 0) {
+          return { hasConflict: false, conflictingItemSet: new Set(), message: '' };
+        }
+        const matchResult = findMaximumBipartiteMatching(constrained, total, false);
+        if (matchResult.allMatched) {
+          return { hasConflict: false, conflictingItemSet: new Set(), message: '' };
+        }
+        return {
+          hasConflict: true,
+          conflictingItemSet: matchResult.conflictItems,
+          message:
+            'Σύγκρουση κλειδωμάτων: οι επιλεγμένοι περιορισμοί θέσεων δεν μπορούν να ικανοποιηθούν ταυτόχρονα (π.χ. περισσότερες ερωτήσεις από διαθέσιμες θέσεις στο ίδιο εύρος).'
+        };
+      }
+
+      // Shuffle questions respecting exact locks, range locks (#min-#max), and fixed spacers
+      function shuffleQuestionsWithConstraints(questions) {
+        const { numberedItems, numberedSlotIndices, total, constrained, unlocked } =
+          extractSectionLockConstraints(questions);
+
+        if (total <= 1) {
+          return questions.slice();
+        }
+
+        if (constrained.length === 0) {
+          const result = questions.slice();
+          const shuffled = fisherYatesShuffle(numberedItems);
+          for (let i = 0; i < numberedSlotIndices.length; i++) {
+            result[numberedSlotIndices[i]] = shuffled[i];
+          }
+          return result;
+        }
+
+        // Phase 1: Randomized MRV backtracking with forward checking for uniform random valid placement
+        const mrvOrder = fisherYatesShuffle(constrained)
+          .sort((a, b) => a.allowed.length - b.allowed.length)
+          .map((c) => ({
+            item: c.item,
+            allowed: fisherYatesShuffle(c.allowed)
+          }));
+
+        const usedSlots = new Array(total).fill(false);
+        const chosenSlots = new Array(mrvOrder.length).fill(-1);
+        let steps = 0;
+        const MAX_BT_STEPS = 4000;
+
+        function backtrack(depth) {
+          if (depth === mrvOrder.length) return true;
+          if (++steps > MAX_BT_STEPS) return false;
+
+          const candidates = mrvOrder[depth].allowed;
+          for (let k = 0; k < candidates.length; k++) {
+            const slot = candidates[k];
+            if (usedSlots[slot]) continue;
+
+            usedSlots[slot] = true;
+            chosenSlots[depth] = slot;
+
+            // Forward check: ensure every remaining constrained item still has >= 1 free slot
+            let feasible = true;
+            for (let r = depth + 1; r < mrvOrder.length; r++) {
+              const remAllowed = mrvOrder[r].allowed;
+              let hasFree = false;
+              for (let j = 0; j < remAllowed.length; j++) {
+                if (!usedSlots[remAllowed[j]]) {
+                  hasFree = true;
+                  break;
+                }
+              }
+              if (!hasFree) {
+                feasible = false;
+                break;
+              }
+            }
+
+            if (feasible && backtrack(depth + 1)) {
+              return true;
+            }
+            usedSlots[slot] = false;
+            chosenSlots[depth] = -1;
+          }
+          return false;
+        }
+
+        const slotAssignment = new Array(total).fill(null);
+        const solvedByBt = backtrack(0);
+
+        if (solvedByBt) {
+          for (let i = 0; i < mrvOrder.length; i++) {
+            slotAssignment[chosenSlots[i]] = mrvOrder[i].item;
+          }
+        } else {
+          // Phase 2: Randomized Kuhn's bipartite matching (guaranteed polynomial solution if feasible, best-effort on conflict)
+          const matchRes = findMaximumBipartiteMatching(constrained, total, true);
+          const placed = new Set();
+          matchRes.assignment.forEach((slot, item) => {
+            slotAssignment[slot] = item;
+            placed.add(item);
+          });
+          // Fallback for any conflicting constrained items that could not fit
+          const leftovers = fisherYatesShuffle(
+            constrained.filter((c) => !placed.has(c.item)).map((c) => c.item)
+          );
+          let lIdx = 0;
+          for (let s = 0; s < total && lIdx < leftovers.length; s++) {
+            if (!slotAssignment[s]) {
+              slotAssignment[s] = leftovers[lIdx++];
+            }
+          }
+        }
+
+        // Fill remaining free numbered slots with shuffled unlocked questions
+        const shuffledUnlocked = fisherYatesShuffle(unlocked);
+        let uIdx = 0;
+        for (let s = 0; s < total; s++) {
+          if (!slotAssignment[s]) {
+            slotAssignment[s] = shuffledUnlocked[uIdx++];
+          }
+        }
+
+        const result = questions.slice();
+        for (let i = 0; i < numberedSlotIndices.length; i++) {
+          result[numberedSlotIndices[i]] = slotAssignment[i];
+        }
+        return result;
+      }
+
+      // Shuffle helper respecting locked slots (positions with isLockedFn(item) === true remain pinned)
+      function shuffleWithLocks(items, isLockedFn) {
+        const result = new Array(items.length);
+        const unlocked = [];
+        const unlockedIndices = [];
+
+        for (let i = 0; i < items.length; i++) {
+          if (isLockedFn(items[i])) {
+            result[i] = items[i];
+          } else {
+            unlocked.push(items[i]);
+            unlockedIndices.push(i);
+          }
+        }
+
+        const shuffledUnlocked = fisherYatesShuffle(unlocked);
+        for (let k = 0; k < unlockedIndices.length; k++) {
+          result[unlockedIndices[k]] = shuffledUnlocked[k];
+        }
+
+        return result;
+      }
+
+      // Generate all versions (Ομάδα Α, Β, Γ, Δ) using Fisher-Yates
+      function generateAllVersions() {
+        const count = Math.min(4, Math.max(1, parseInt(state.header.numVersions, 10) || 1));
+
+        // Pre-assign shuffled alternative variants (both option-level || and question-level ---) across versions
+        const variantAssignments = new Map();
+        const questionVariantAssignments = new Map();
+
+        function registerOptionVariants(qItem) {
+          if (!qItem || qItem.type !== 'mc') return;
+          qItem.options.forEach((opt) => {
+            const variants = Array.isArray(opt.variants) && opt.variants.length > 0 ? opt.variants : [opt.text];
+            if (variants.length === 1) {
+              variantAssignments.set(opt, new Array(count).fill(variants[0]));
+            } else {
+              let pool = [];
+              while (pool.length < count) {
+                pool = pool.concat(fisherYatesShuffle(variants));
+              }
+              variantAssignments.set(opt, pool.slice(0, count));
+            }
+          });
+        }
+
+        state.sections.forEach((sec) => {
+          sec.questions.forEach((q) => {
+            if (q.type === 'variant_group') {
+              let qPool = [];
+              while (qPool.length < count) {
+                qPool = qPool.concat(fisherYatesShuffle(q.variants));
+              }
+              questionVariantAssignments.set(q, qPool.slice(0, count));
+              q.variants.forEach(registerOptionVariants);
+            } else {
+              registerOptionVariants(q);
+            }
+          });
+        });
+
+        const versions = [];
+
+        for (let v = 0; v < count; v++) {
+          const groupLetter = GROUP_NAMES[v];
+          const orderedSections = shuffleWithLocks(state.sections, (sec) => sec.locked);
+
+          const versionSections = orderedSections.map((sec) => {
+            const orderedQuestions = shuffleQuestionsWithConstraints(sec.questions);
+            let questionCounter = 0;
+
+            const renderedQuestions = orderedQuestions.map((rawQ) => {
+              if (rawQ.type === 'spacer') {
+                return {
+                  type: 'spacer',
+                  spaceLines: rawQ.spaceLines
+                };
+              }
+
+              questionCounter += 1;
+              const displayNum = questionCounter;
+              const q = rawQ.type === 'variant_group' ? questionVariantAssignments.get(rawQ)[v] : rawQ;
+
+              if (q.type === 'mc') {
+                let shuffledOpts;
+                if (q.lockLastOption && q.options.length > 1) {
+                  const head = fisherYatesShuffle(q.options.slice(0, q.options.length - 1));
+                  shuffledOpts = head.concat([q.options[q.options.length - 1]]);
+                } else {
+                  shuffledOpts = fisherYatesShuffle(q.options);
+                }
+
+                const labeledOpts = shuffledOpts.map((opt, idx) => {
+                  const assignedList = variantAssignments.get(opt);
+                  const chosenText = assignedList ? assignedList[v] : opt.text;
+                  return {
+                    letter: GREEK_LETTERS[idx] || String(idx + 1),
+                    text: chosenText,
+                    isCorrect: opt.isCorrect
+                  };
+                });
+
+                const correctOpts = labeledOpts.filter((o) => o.isCorrect);
+
+                return {
+                  type: 'mc',
+                  displayNum: displayNum,
+                  prompt: q.prompt,
+                  options: labeledOpts,
+                  correctOpts: correctOpts,
+                  extraSpaceLines: q.extraSpaceLines || 0
+                };
+              }
+
+              if (q.type === 'matching') {
+                const colA = q.lockColA ? q.pairs.slice() : fisherYatesShuffle(q.pairs);
+                const colB = fisherYatesShuffle(q.pairs);
+
+                const colAItems = colA.map((pair, idx) => ({
+                  num: idx + 1,
+                  pairId: pair.pairId,
+                  text: pair.left
+                }));
+
+                const colBItems = colB.map((pair, idx) => ({
+                  letter: GREEK_LETTERS[idx] || String(idx + 1),
+                  pairId: pair.pairId,
+                  text: pair.right
+                }));
+
+                const letterByPairId = new Map();
+                colBItems.forEach((b) => letterByPairId.set(b.pairId, b.letter));
+
+                const keyPairs = colAItems.map((a) => ({
+                  num: a.num,
+                  letter: letterByPairId.get(a.pairId) || '?'
+                }));
+
+                return {
+                  type: 'matching',
+                  displayNum: displayNum,
+                  prompt: q.prompt,
+                  colA: colAItems,
+                  colB: colBItems,
+                  keyPairs: keyPairs,
+                  extraSpaceLines: q.extraSpaceLines || 0
+                };
+              }
+
+              return {
+                type: 'open',
+                displayNum: displayNum,
+                prompt: q.prompt,
+                writingLines: q.writingLines || 0,
+                extraSpaceLines: q.extraSpaceLines || 0
+              };
+            });
+
+            return {
+              title: sec.title,
+              isImplicit: sec.isImplicit,
+              questions: renderedQuestions
+            };
+          });
+
+          versions.push({
+            index: v,
+            groupLetter: groupLetter,
+            label: 'ΟΜΑΔΑ ' + groupLetter,
+            sections: versionSections
+          });
+        }
+
+        state.generatedVersions = versions;
+      }
+
+      function getQuestionTypeLabel(qItem) {
+        const extraNote =
+          qItem.extraSpaceLines > 0
+            ? ` + ${qItem.extraSpaceLines} ${qItem.extraSpaceLines === 1 ? 'κενή σειρά' : 'κενές σειρές'}`
+            : '';
+        if (qItem.type === 'mc') return 'Πολλαπλής επιλογής' + extraNote;
+        if (qItem.type === 'matching') return `Αντιστοίχιση (${qItem.pairs.length} ζεύγη)` + extraNote;
+        if (qItem.type === 'spacer') return `Κενός χώρος (${qItem.spaceLines} ${qItem.spaceLines === 1 ? 'σειρά' : 'σειρές'})`;
+        return (qItem.writingLines > 0 ? `Ανοιχτή ερώτηση (${qItem.writingLines} γραμμές)` : 'Ανοιχτή ερώτηση') + extraNote;
+      }
+
+      function renderManagerQuestionBodyHtml(qItem) {
+        let out = '';
+        if (qItem.type === 'matching') {
+          if (qItem.prompt) {
+            out += `<div class="mgr-prompt math-render">${formatRichMathText(qItem.prompt)}</div>`;
+          }
+          out += `<div class="mgr-subitems">`;
+          qItem.pairs.forEach((p, pIdx) => {
+            out += `<div class="math-render">${pIdx + 1}. ${formatRichMathText(p.left)} &nbsp;↔&nbsp; ${formatRichMathText(p.right)}</div>`;
+          });
+          out += `</div>`;
+        } else {
+          out += `<div class="mgr-prompt math-render">${formatRichMathText(qItem.prompt)}</div>`;
+          if (qItem.type === 'mc') {
+            out += `<div class="mgr-subitems">`;
+            qItem.options.forEach((opt, oIdx) => {
+              const cls = opt.isCorrect ? 'mgr-subitem-correct math-render' : 'math-render';
+              const mark = opt.isCorrect ? '✓ ' : '';
+              const optHtml =
+                opt.variants && opt.variants.length > 1
+                  ? opt.variants.map((v) => formatRichMathText(v)).join('<span class="mgr-alt-sep">||</span>')
+                  : formatRichMathText(opt.text);
+              out += `<div class="${cls}">${mark}${GREEK_LETTERS[oIdx] || oIdx + 1}) ${optHtml}</div>`;
+            });
+            out += `</div>`;
+          }
+        }
+        return out;
+      }
+
+      function renderManagerVariantControlsHtml(qItem, sIdx, qIdx, vIdx) {
+        const vAttr = vIdx !== null && vIdx !== undefined ? ` data-vidx="${vIdx}"` : '';
+        if (qItem.type === 'mc' && qItem.options.length > 1) {
+          const checkedAttr = qItem.lockLastOption ? 'checked' : '';
+          return `<label class="checkbox-row"><input type="checkbox" data-action="toggle-last-option" data-sidx="${sIdx}" data-qidx="${qIdx}"${vAttr} ${checkedAttr} /><span>Κλείδωμα τελευταίας επιλογής</span></label>`;
+        }
+        if (qItem.type === 'matching') {
+          const checkedAttr = qItem.lockColA ? 'checked' : '';
+          return `<label class="checkbox-row"><input type="checkbox" data-action="toggle-col-a-lock" data-sidx="${sIdx}" data-qidx="${qIdx}"${vAttr} ${checkedAttr} /><span>Κλείδωμα σειράς Στήλης Α</span></label>`;
+        }
+        return '';
+      }
+
+      // Render Interactive Question & Section Manager
+      function renderManager() {
+        const container = els.managerContainer;
+        const totalSections = state.sections.filter((s) => !s.isImplicit).length;
+        const totalQuestions = state.sections.reduce(
+          (acc, s) => acc + s.questions.filter((q) => q.type !== 'spacer').length,
+          0
+        );
+        els.managerSummary.textContent = `${totalSections} ενότητες · ${totalQuestions} ερωτήσεις/ασκήσεις`;
+
+        if (state.sections.length === 0 || (totalQuestions === 0 && totalSections === 0)) {
+          container.innerHTML = '<div class="empty-state">Δεν βρέθηκαν ερωτήσεις. Γράψτε ή επικολλήστε ερωτήσεις στο πλαίσιο κειμένου παραπάνω ή πατήστε «Φόρτωση Δείγματος».</div>';
+          return;
+        }
+
+        let html = '';
+
+        function renderQuestionLockControlsHtml(q, sIdx, qIdx, posNum, numberedCount) {
+          const cfg = getQuestionLockConfig(q, numberedCount, posNum);
+          const isExact = cfg.mode === 'exact';
+          const isRange = cfg.mode === 'range';
+
+          const exactBtnClass = isExact ? 'lock-btn is-locked' : 'lock-btn';
+          const exactBtnLabel = isExact ? `Κλειδωμένο στη θέση #${posNum}` : `Κλείδωμα θέσης (#${posNum})`;
+          const rangeBtnClass = isRange ? 'lock-btn is-range-locked' : 'lock-btn';
+          const rangeBtnLabel = isRange ? `Εύρος #${cfg.min}–#${cfg.max}` : 'Εύρος θέσεων';
+          const rangeDisabledAttr = numberedCount <= 1 ? ' disabled title="Απαιτούνται τουλάχιστον 2 ερωτήσεις στην ενότητα"' : ' title="Ορισμός επιτρεπτού εύρους θέσεων (π.χ. #3 – #5)"';
+
+          let out = `<div class="lock-control-group">`;
+          out += `<button type="button" class="${exactBtnClass}" data-action="toggle-question-lock" data-sidx="${sIdx}" data-qidx="${qIdx}" title="Κλείδωμα στην ακριβή θέση #${posNum}">${exactBtnLabel}</button>`;
+          out += `<button type="button" class="${rangeBtnClass}" data-action="toggle-question-range" data-sidx="${sIdx}" data-qidx="${qIdx}"${rangeDisabledAttr}>${rangeBtnLabel}</button>`;
+
+          if (isRange && numberedCount > 1) {
+            let minOptions = '';
+            let maxOptions = '';
+            for (let p = 1; p <= numberedCount; p++) {
+              minOptions += `<option value="${p}"${p === cfg.min ? ' selected' : ''}>#${p}</option>`;
+              maxOptions += `<option value="${p}"${p === cfg.max ? ' selected' : ''}>#${p}</option>`;
+            }
+            out += `<div class="lock-range-inline">`;
+            out += `<span class="lock-range-inline-label">Από</span>`;
+            out += `<select class="lock-range-select" data-action="set-lock-min" data-sidx="${sIdx}" data-qidx="${qIdx}" aria-label="Ελάχιστη θέση ερώτησης #${posNum}">${minOptions}</select>`;
+            out += `<span class="lock-range-inline-label">έως</span>`;
+            out += `<select class="lock-range-select" data-action="set-lock-max" data-sidx="${sIdx}" data-qidx="${qIdx}" aria-label="Μέγιστη θέση ερώτησης #${posNum}">${maxOptions}</select>`;
+            out += `</div>`;
+          }
+          out += `</div>`;
+          return out;
+        }
+
+        state.sections.forEach((sec, sIdx) => {
+          const secTitleText = sec.isImplicit ? 'Ερωτήσεις εκτός ενότητας' : sec.title;
+          const secLockClass = sec.locked ? 'lock-btn is-locked' : 'lock-btn';
+          const secLockLabel = sec.locked
+            ? `Κλειδωμένη ενότητα (#${sIdx + 1})`
+            : 'Ελεύθερη σειρά ενότητας';
+          const numberedCount = sec.questions.filter((item) => item.type !== 'spacer').length;
+          const conflictInfo = analyzeSectionLockConstraints(sec.questions);
+
+          html += `<div class="mgr-section" data-section-index="${sIdx}">`;
+          html += `<div class="mgr-section-header">`;
+          html += `<div class="mgr-section-title math-render">${formatRichMathText(secTitleText)}</div>`;
+          if (!sec.isImplicit) {
+            html += `<button type="button" class="${secLockClass}" data-action="toggle-section-lock" data-sidx="${sIdx}">${secLockLabel}</button>`;
+          }
+          html += `</div>`;
+          if (conflictInfo.hasConflict) {
+            html += `<div class="mgr-conflict-banner">${escapeHtml(conflictInfo.message)}</div>`;
+          }
+
+          html += `<div class="mgr-items">`;
+          if (sec.questions.length === 0) {
+            html += `<div class="empty-state" style="padding:12px;">Η ενότητα δεν περιέχει ακόμη ερωτήσεις.</div>`;
+          } else {
+            let mgrCounter = 0;
+            sec.questions.forEach((q, qIdx) => {
+              if (q.type === 'spacer') {
+                html += `<div class="mgr-card" style="border-style:dashed; background:#f8fafc;">`;
+                html += `<div class="mgr-card-top" style="margin-bottom:0;">`;
+                html += `<span class="mgr-meta">${escapeHtml(getQuestionTypeLabel(q))} · [space:${q.spaceLines}]</span>`;
+                html += `</div>`;
+                html += `</div>`;
+                return;
+              }
+
+              mgrCounter += 1;
+              const posNum = mgrCounter;
+              const isConflictCard = conflictInfo.conflictingItemSet.has(q);
+              const cardConflictClass = isConflictCard ? ' is-lock-conflict' : '';
+              const lockControlsHtml = renderQuestionLockControlsHtml(q, sIdx, qIdx, posNum, numberedCount);
+
+              if (q.type === 'variant_group') {
+                const missingCorrect = q.variants.some((vq) => vq.type === 'mc' && !vq.options.some((o) => o.isCorrect));
+
+                html += `<div class="mgr-card${cardConflictClass}">`;
+                html += `<div class="mgr-card-top">`;
+                html += `<span class="mgr-meta">#${posNum} · Εναλλακτικές ερωτήσεις (${q.variants.length} εκδοχές)</span>`;
+                if (isConflictCard) {
+                  html += `<span class="mgr-conflict-badge">Σύγκρουση εύρους</span>`;
+                }
+                if (missingCorrect) {
+                  html += `<span class="mgr-warning">Λείπει ο αστερίσκος (*) σε μία ή περισσότερες εκδοχές</span>`;
+                }
+                html += `</div>`;
+
+                html += `<div class="mgr-variants-list">`;
+                q.variants.forEach((vq, vIdx) => {
+                  const vHasCorrect = vq.type === 'mc' ? vq.options.some((o) => o.isCorrect) : true;
+                  const vControls = renderManagerVariantControlsHtml(vq, sIdx, qIdx, vIdx);
+                  html += `<div class="mgr-variant-item">`;
+                  html += `<div class="mgr-variant-header">`;
+                  html += `<span class="mgr-variant-label">Εκδοχή ${vIdx + 1} · ${escapeHtml(getQuestionTypeLabel(vq))}</span>`;
+                  if (!vHasCorrect) {
+                    html += `<span class="mgr-warning">Λείπει το *</span>`;
+                  }
+                  html += `</div>`;
+                  html += renderManagerQuestionBodyHtml(vq);
+                  if (vControls) {
+                    html += `<div class="mgr-variant-controls">${vControls}</div>`;
+                  }
+                  html += `</div>`;
+                });
+                html += `</div>`;
+
+                html += `<div class="mgr-card-controls">`;
+                html += lockControlsHtml;
+                html += `</div>`;
+                html += `</div>`;
+              } else {
+                const typeLabel = getQuestionTypeLabel(q);
+                const hasCorrect = q.type === 'mc' ? q.options.some((o) => o.isCorrect) : true;
+
+                html += `<div class="mgr-card${cardConflictClass}">`;
+                html += `<div class="mgr-card-top">`;
+                html += `<span class="mgr-meta">#${posNum} · ${escapeHtml(typeLabel)}</span>`;
+                if (isConflictCard) {
+                  html += `<span class="mgr-conflict-badge">Σύγκρουση εύρους</span>`;
+                }
+                if (!hasCorrect) {
+                  html += `<span class="mgr-warning">Λείπει ο αστερίσκος (*) στη σωστή απάντηση</span>`;
+                }
+                html += `</div>`;
+
+                html += renderManagerQuestionBodyHtml(q);
+
+                html += `<div class="mgr-card-controls">`;
+                html += lockControlsHtml;
+                html += renderManagerVariantControlsHtml(q, sIdx, qIdx, null);
+                html += `</div>`;
+                html += `</div>`;
+              }
+            });
+          }
+          html += `</div>`;
+          html += `</div>`;
+        });
+
+        container.innerHTML = html;
+        runKaTeX(container);
+      }
+
+      // Estimate plain text length of an option (ignoring LaTeX commands and formatting markers)
+      function estimateOptionLength(text) {
+        return String(text || '')
+          .replace(/<\/?u>/gi, '')
+          .replace(/\*\*|__/g, '')
+          .replace(/\\text\{([^}]*)\}/g, '$1')
+          .replace(/\\[a-zA-Z]+/g, '')
+          .replace(/[${}]/g, '')
+          .trim().length;
+      }
+
+      function buildOriginalQuestionItem(q, displayNum) {
+        if (q.type === 'spacer') {
+          return {
+            type: 'spacer',
+            spaceLines: q.spaceLines,
+            sourceStart: q.sourceStart,
+            sourceEnd: q.sourceEnd
+          };
+        }
+
+        if (q.type === 'variant_group') {
+          const activeIdx = getActiveVariantIndex(q);
+          const activeVariant = q.variants[activeIdx] || q.variants[0];
+          const rendered = buildOriginalQuestionItem(activeVariant, displayNum);
+          rendered.variantGroupMeta = {
+            matchKey: q.matchKey,
+            activeIdx: activeIdx,
+            total: q.variants.length
+          };
+          return rendered;
+        }
+
+        if (q.type === 'mc') {
+          const labeledOpts = q.options.map((opt, idx) => {
+            const variants = Array.isArray(opt.variants) && opt.variants.length > 0 ? opt.variants : [opt.text];
+            const optKey = q.matchKey + '::' + idx;
+            const rawOptIdx = state.activeOptVariantByKey[optKey];
+            const activeOptIdx =
+              typeof rawOptIdx === 'number' && !Number.isNaN(rawOptIdx)
+                ? Math.max(0, Math.min(variants.length - 1, rawOptIdx))
+                : 0;
+            return {
+              letter: GREEK_LETTERS[idx] || String(idx + 1),
+              text: variants[activeOptIdx],
+              variants: variants,
+              optVariantKey: optKey,
+              activeOptIdx: activeOptIdx,
+              isCorrect: opt.isCorrect
+            };
+          });
+          return {
+            type: 'mc',
+            displayNum: displayNum,
+            prompt: q.prompt,
+            sourceStart: q.sourceStart,
+            sourceEnd: q.sourceEnd,
+            options: labeledOpts,
+            correctOpts: labeledOpts.filter((o) => o.isCorrect),
+            extraSpaceLines: q.extraSpaceLines || 0
+          };
+        }
+
+        if (q.type === 'matching') {
+          const colAItems = q.pairs.map((pair, idx) => ({
+            num: idx + 1,
+            pairId: pair.pairId,
+            text: pair.left
+          }));
+          const colBItems = q.pairs.map((pair, idx) => ({
+            letter: GREEK_LETTERS[idx] || String(idx + 1),
+            pairId: pair.pairId,
+            text: pair.right
+          }));
+          return {
+            type: 'matching',
+            displayNum: displayNum,
+            prompt: q.prompt,
+            sourceStart: q.sourceStart,
+            sourceEnd: q.sourceEnd,
+            colA: colAItems,
+            colB: colBItems,
+            keyPairs: colAItems.map((a, idx) => ({
+              num: a.num,
+              letter: colBItems[idx] ? colBItems[idx].letter : '?'
+            })),
+            extraSpaceLines: q.extraSpaceLines || 0
+          };
+        }
+
+        return {
+          type: 'open',
+          displayNum: displayNum,
+          prompt: q.prompt,
+          sourceStart: q.sourceStart,
+          sourceEnd: q.sourceEnd,
+          writingLines: q.writingLines || 0,
+          extraSpaceLines: q.extraSpaceLines || 0
+        };
+      }
+
+      // Build an unshuffled version matching exact editor order
+      function buildOriginalVersion() {
+        const originalSections = state.sections.map((sec) => {
+          let questionCounter = 0;
+          const renderedQuestions = sec.questions.map((q) => {
+            if (q.type === 'spacer') {
+              return buildOriginalQuestionItem(q, 0);
+            }
+            questionCounter += 1;
+            return buildOriginalQuestionItem(q, questionCounter);
+          });
+
+          return {
+            title: sec.title,
+            isImplicit: sec.isImplicit,
+            sourceStart: sec.sourceStart,
+            sourceEnd: sec.sourceEnd,
+            questions: renderedQuestions
+          };
+        });
+
+        return {
+          index: -1,
+          groupLetter: 'original',
+          label: 'Όπως γράφεται',
+          sections: originalSections
+        };
+      }
+
+      function buildSourceRangeAttrs(item) {
+        if (typeof item?.sourceStart === 'number' && typeof item?.sourceEnd === 'number') {
+          return ` data-src-start="${item.sourceStart}" data-src-end="${item.sourceEnd}"`;
+        }
+        return '';
+      }
+
+      function getActiveVariantIndex(q) {
+        if (!q || q.type !== 'variant_group' || !Array.isArray(q.variants) || q.variants.length === 0) {
+          return 0;
+        }
+        const rawIdx = state.activeVariantByKey[q.matchKey];
+        if (typeof rawIdx !== 'number' || Number.isNaN(rawIdx)) return 0;
+        return Math.max(0, Math.min(q.variants.length - 1, rawIdx));
+      }
+
+      function syncActiveVariantFromCursor() {
+        if (!state.syncCursor || state.previewMode !== 'original') return false;
+        if (document.activeElement !== els.questionsInput) return false;
+        const cursorPos = els.questionsInput.selectionStart;
+        if (typeof cursorPos !== 'number') return false;
+
+        let changed = false;
+        state.sections.forEach((sec) => {
+          sec.questions.forEach((q) => {
+            if (q.type !== 'variant_group' || !Array.isArray(q.variants)) return;
+            for (let vIdx = 0; vIdx < q.variants.length; vIdx++) {
+              const vq = q.variants[vIdx];
+              if (typeof vq.sourceStart === 'number' && typeof vq.sourceEnd === 'number') {
+                if (cursorPos >= vq.sourceStart && cursorPos <= vq.sourceEnd) {
+                  if (getActiveVariantIndex(q) !== vIdx) {
+                    state.activeVariantByKey[q.matchKey] = vIdx;
+                    changed = true;
+                  }
+                  break;
+                }
+              }
+            }
+          });
+        });
+        return changed;
+      }
+
+      function renderVariantSwitcherHtml(meta) {
+        if (!meta || meta.total <= 1) return '';
+        let out = `<span class="variant-inline-switcher no-print" title="Εναλλαγή εκδοχής στην προεπισκόπηση (διατηρεί το ακριβές A4 layout)">`;
+        out += `<span class="variant-inline-label">Εκδοχή</span>`;
+        for (let i = 0; i < meta.total; i++) {
+          const isActive = i === meta.activeIdx;
+          out += `<button type="button" class="variant-inline-btn ${isActive ? 'is-active' : ''}" data-variant-key="${escapeHtml(meta.matchKey)}" data-variant-idx="${i}" aria-pressed="${isActive ? 'true' : 'false'}">${i + 1}</button>`;
+        }
+        out += `</span>`;
+        return out;
+      }
+
+      function renderExtraSpaceHtml(count) {
+        if (!count || count <= 0) return '';
+        const label = count === 1 ? '1 κενή σειρά' : `${count} κενές σειρές`;
+        return `<div class="extra-space-lines" style="height: calc(${count} * 8.5mm);"><span class="extra-space-hint no-print">+${label}</span></div>`;
+      }
+
+      function renderSingleQuestionHtml(q, highlightCorrect, twoColumnOptions) {
+        let html = '';
+        const srcAttrs = buildSourceRangeAttrs(q);
+
+        if (q.type === 'spacer') {
+          const label = q.spaceLines === 1 ? '1 σειρά' : `${q.spaceLines} σειρές`;
+          html += `<div class="spacer-block"${srcAttrs} style="height: calc(${q.spaceLines} * 8.5mm);"><span class="no-print">Κενός χώρος (${label})</span></div>`;
+          return html;
+        }
+
+        const variantMeta = q.variantGroupMeta || null;
+        const variantSlotCls = variantMeta ? ' is-variant-slot' : '';
+        const switcherHtml = renderVariantSwitcherHtml(variantMeta);
+
+        if (q.type === 'mc') {
+          const maxOptLen =
+            q.options.length > 0
+              ? Math.max(...q.options.map((o) => estimateOptionLength(o.text)))
+              : 999;
+
+          const fontScale = DEFAULT_FONT_SIZE / getClampedFontSize();
+          const singleRowLimit = Math.max(4, Math.floor(12 * fontScale));
+          const twoColLimit = Math.max(16, Math.floor(44 * fontScale));
+
+          let layoutClass = '';
+          let inlineGridStyle = '';
+          if (twoColumnOptions && q.options.length >= 2) {
+            if (q.options.length <= 4 && maxOptLen <= singleRowLimit) {
+              layoutClass = 'single-row';
+              inlineGridStyle = ` style="grid-template-columns: repeat(${q.options.length}, minmax(0, 1fr));"`;
+            } else if (maxOptLen <= twoColLimit) {
+              layoutClass = 'two-cols';
+            }
+          }
+
+          html += `<div class="test-question${variantSlotCls}"${srcAttrs}>`;
+          html += switcherHtml;
+          html += `<div class="question-line">`;
+          html += `<span class="question-num">${q.displayNum}.</span>`;
+          html += `<span class="question-text math-render">${formatRichMathText(q.prompt)}</span>`;
+          html += `</div>`;
+          html += `<div class="mc-options ${layoutClass}"${inlineGridStyle}>`;
+          q.options.forEach((opt) => {
+            const isHighlighted = highlightCorrect && opt.isCorrect;
+            html += `<div class="mc-option ${isHighlighted ? 'is-correct-preview' : ''}">`;
+            html += `<span class="mc-letter">${escapeHtml(opt.letter)})</span>`;
+            let optInnerHtml = `<span class="math-render">${formatRichMathText(opt.text)}</span>`;
+            if (highlightCorrect && Array.isArray(opt.variants) && opt.variants.length > 1) {
+              const altsTitle = opt.variants.map((v, i) => `${i + 1}) ${v}`).join(' | ');
+              const nextIdx = ((opt.activeOptIdx || 0) + 1) % opt.variants.length;
+              optInnerHtml += `<button type="button" class="mc-alt-cycle-btn no-print" data-opt-variant-key="${escapeHtml(opt.optVariantKey || '')}" data-opt-variant-next="${nextIdx}" title="Εναλλαγή επιλογής (${escapeHtml(altsTitle)})">|| ${((opt.activeOptIdx || 0) + 1)}/${opt.variants.length}</button>`;
+            }
+            html += `<span>${optInnerHtml}</span>`;
+            html += `</div>`;
+          });
+          html += `</div>`;
+          if (highlightCorrect && q.correctOpts.length === 0) {
+            html += `<div class="mc-missing-correct">Προσοχή: δεν έχει οριστεί σωστή απάντηση (*)</div>`;
+          }
+          html += renderExtraSpaceHtml(q.extraSpaceLines);
+          html += `</div>`;
+        } else if (q.type === 'matching') {
+          html += `<div class="matching-block${variantSlotCls}"${srcAttrs}>`;
+          html += switcherHtml;
+          if (q.prompt) {
+            html += `<div class="matching-prompt-row">`;
+            html += `<div class="matching-prompt math-render">${formatRichMathText(q.prompt)}</div>`;
+            html += `</div>`;
+          }
+          html += `<div class="matching-columns">`;
+
+          // Column A
+          html += `<div>`;
+          html += `<div class="matching-col-header">Στήλη Α</div>`;
+          q.colA.forEach((item) => {
+            html += `<div class="matching-row-item">`;
+            html += `<span class="matching-key-label">${item.num}.</span>`;
+            html += `<span class="math-render">${formatRichMathText(item.text)}</span>`;
+            html += `</div>`;
+          });
+          html += `</div>`;
+
+          // Column B
+          html += `<div>`;
+          html += `<div class="matching-col-header">Στήλη Β</div>`;
+          q.colB.forEach((item) => {
+            html += `<div class="matching-row-item">`;
+            html += `<span class="matching-key-label">${escapeHtml(item.letter)}.</span>`;
+            html += `<span class="math-render">${formatRichMathText(item.text)}</span>`;
+            html += `</div>`;
+          });
+          html += `</div>`;
+
+          html += `</div>`;
+
+          // Answer boxes strip
+          html += `<div class="matching-answer-strip">`;
+          q.colA.forEach((item, idx) => {
+            if (highlightCorrect && q.keyPairs && q.keyPairs[idx]) {
+              html += `<span class="matching-answer-slot">${item.num} &rarr;<span class="matching-blank is-filled">${escapeHtml(q.keyPairs[idx].letter)}</span></span>`;
+            } else {
+              html += `<span class="matching-answer-slot">${item.num} &rarr;<span class="matching-blank"></span></span>`;
+            }
+          });
+          html += `</div>`;
+          html += renderExtraSpaceHtml(q.extraSpaceLines);
+
+          html += `</div>`;
+        } else {
+          // Open-ended question
+          html += `<div class="test-question${variantSlotCls}"${srcAttrs}>`;
+          html += switcherHtml;
+          html += `<div class="question-line">`;
+          html += `<span class="question-num">${q.displayNum}.</span>`;
+          html += `<span class="question-text math-render">${formatRichMathText(q.prompt)}</span>`;
+          html += `</div>`;
+          if (q.writingLines > 0) {
+            html += `<div class="writing-lines">`;
+            for (let l = 0; l < q.writingLines; l++) {
+              html += `<div class="writing-line"></div>`;
+            }
+            html += `</div>`;
+          }
+          html += renderExtraSpaceHtml(q.extraSpaceLines);
+          html += `</div>`;
+        }
+        return html;
+      }
+
+      // Render a single A4 Test Sheet
+      function renderTestSheetHtml(version, showBadge, highlightCorrect = false) {
+        const { title, subtitle, studentInfo, twoColumnOptions } = state.header;
+        const safeGap = getClampedQuestionGap();
+        const safeFontSize = getClampedFontSize();
+        let html = `<article class="a4-sheet" id="sheet-group-${escapeHtml(version.groupLetter)}" style="--question-gap: ${safeGap}px; --sheet-font-size: ${safeFontSize}pt;">`;
+
+        // Printed Header
+        html += `<header class="sheet-header">`;
+        html += `<div class="sheet-header-top">`;
+        html += `<div class="student-info-block">${escapeHtml(studentInfo)}</div>`;
+        if (showBadge) {
+          html += `<div class="version-badge">${escapeHtml(version.label)}</div>`;
+        }
+        html += `</div>`;
+
+        html += `<div class="sheet-title-block">`;
+        html += `<h2 class="sheet-title">${escapeHtml(title || 'Διαγώνισμα Μαθηματικών')}</h2>`;
+        if (subtitle && subtitle.trim().length > 0) {
+          html += `<p class="sheet-subtitle">${escapeHtml(subtitle.trim())}</p>`;
+        }
+        html += `</div>`;
+        html += `</header>`;
+
+        // Exam Body
+        html += `<div class="sheet-body">`;
+
+        version.sections.forEach((sec) => {
+          html += `<section class="exam-section">`;
+          if (!sec.isImplicit && sec.title) {
+            const secSrcAttrs = buildSourceRangeAttrs(sec);
+            html += `<h3 class="exam-section-title math-render"${secSrcAttrs}>${formatRichMathText(sec.title)}</h3>`;
+          }
+
+          sec.questions.forEach((q) => {
+            html += renderSingleQuestionHtml(q, highlightCorrect, twoColumnOptions);
+          });
+
+          html += `</section>`;
+        });
+
+        html += `</div>`;
+        html += `</article>`;
+        return html;
+      }
+
+      // Smoothly keep the actively edited question in view inside the sticky preview pane
+      function syncPreviewToCursor(shouldScroll = true) {
+        if (!els.previewContainer) return;
+        els.previewContainer.querySelectorAll('.is-cursor-focused').forEach((el) => {
+          el.classList.remove('is-cursor-focused');
+        });
+
+        if (!state.syncCursor || state.previewMode !== 'original') return;
+        if (document.activeElement !== els.questionsInput) return;
+
+        if (syncActiveVariantFromCursor()) {
+          renderPreview();
+          return;
+        }
+
+        const cursorPos = els.questionsInput.selectionStart;
+        if (typeof cursorPos !== 'number') return;
+
+        const targets = Array.from(els.previewContainer.querySelectorAll('[data-src-start][data-src-end]'));
+        if (targets.length === 0) return;
+
+        let matched = null;
+        let lastBefore = null;
+        for (let i = 0; i < targets.length; i++) {
+          const el = targets[i];
+          const s = parseInt(el.getAttribute('data-src-start'), 10);
+          const e = parseInt(el.getAttribute('data-src-end'), 10);
+          if (Number.isNaN(s) || Number.isNaN(e) || s < 0) continue;
+          if (cursorPos >= s && cursorPos <= e) {
+            matched = el;
+            break;
+          }
+          if (s <= cursorPos) {
+            lastBefore = el;
+          }
+        }
+
+        const activeEl = matched || lastBefore || targets[0];
+        if (!activeEl) return;
+
+        activeEl.classList.add('is-cursor-focused');
+
+        if (!shouldScroll || window.innerWidth <= 1180) return;
+
+        const wrapper = els.previewPagesWrapper;
+        if (!wrapper || wrapper.scrollHeight <= wrapper.clientHeight + 4) return;
+
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const targetRect = activeEl.getBoundingClientRect();
+        const topComfort = wrapperRect.top + 24;
+        const bottomComfort = wrapperRect.bottom - 28;
+
+        if (targetRect.top >= topComfort && targetRect.bottom <= bottomComfort) {
+          return;
+        }
+
+        const desiredTop =
+          wrapper.scrollTop + (targetRect.top - wrapperRect.top) - Math.round(wrapper.clientHeight * 0.25);
+        wrapper.scrollTo({
+          top: Math.max(0, desiredTop),
+          behavior: 'smooth'
+        });
+      }
+
+      function updatePrintScope() {
+        let scope = 'original';
+        if (state.previewMode === 'versions') {
+          scope = state.activeNavTarget === 'sheet-answer-key' ? 'answer-key' : 'versions-only';
+        }
+        document.body.setAttribute('data-print-scope', scope);
+      }
+
+      function getClampedQuestionGap() {
+        const rawGap = Number(state.header.questionGap);
+        return Number.isFinite(rawGap)
+          ? Math.min(MAX_QUESTION_GAP, Math.max(MIN_QUESTION_GAP, rawGap))
+          : DEFAULT_QUESTION_GAP;
+      }
+
+      function getClampedFontSize() {
+        const rawSize = Number(state.header.fontSize);
+        if (!Number.isFinite(rawSize)) return DEFAULT_FONT_SIZE;
+        const rounded = Math.round(rawSize * 2) / 2;
+        return Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, rounded));
+      }
+
+      function formatFontSizeLabel(size) {
+        return Number.isInteger(size) ? size + 'pt' : size.toFixed(1) + 'pt';
+      }
+
+      function updateResetLayoutBtnState() {
+        if (!els.resetLayoutDefaultsBtn) return;
+        const atDefaults =
+          getClampedQuestionGap() === DEFAULT_QUESTION_GAP &&
+          getClampedFontSize() === DEFAULT_FONT_SIZE;
+        els.resetLayoutDefaultsBtn.disabled = atDefaults;
+      }
+
+      function applyQuestionGapUi() {
+        const gap = getClampedQuestionGap();
+        state.header.questionGap = gap;
+        if (document.documentElement) {
+          document.documentElement.style.setProperty('--question-gap', gap + 'px');
+        }
+        if (els.previewContainer) {
+          els.previewContainer.style.setProperty('--question-gap', gap + 'px');
+          els.previewContainer.querySelectorAll('.a4-sheet').forEach((sheet) => {
+            sheet.style.setProperty('--question-gap', gap + 'px');
+          });
+        }
+        if (els.gapValueBtn) {
+          els.gapValueBtn.textContent = gap + 'px';
+        }
+        if (els.gapDecBtn) {
+          els.gapDecBtn.disabled = gap <= MIN_QUESTION_GAP;
+        }
+        if (els.gapIncBtn) {
+          els.gapIncBtn.disabled = gap >= MAX_QUESTION_GAP;
+        }
+        updateResetLayoutBtnState();
+      }
+
+      function applyFontSizeUi() {
+        const size = getClampedFontSize();
+        state.header.fontSize = size;
+        const sizeStr = size + 'pt';
+        if (document.documentElement) {
+          document.documentElement.style.setProperty('--sheet-font-size', sizeStr);
+        }
+        if (els.previewContainer) {
+          els.previewContainer.style.setProperty('--sheet-font-size', sizeStr);
+          els.previewContainer.querySelectorAll('.a4-sheet').forEach((sheet) => {
+            sheet.style.setProperty('--sheet-font-size', sizeStr);
+          });
+        }
+        if (els.fontValueBtn) {
+          els.fontValueBtn.textContent = formatFontSizeLabel(size);
+        }
+        if (els.fontDecBtn) {
+          els.fontDecBtn.disabled = size <= MIN_FONT_SIZE;
+        }
+        if (els.fontIncBtn) {
+          els.fontIncBtn.disabled = size >= MAX_FONT_SIZE;
+        }
+        updateResetLayoutBtnState();
+      }
+
+      // Render A4 Test Sheets + Teacher's Answer Key
+      function renderPreview() {
+        updatePrintScope();
+        applyQuestionGapUi();
+        applyFontSizeUi();
+        const versions = state.generatedVersions;
+        const { title, numVersions, showSingleBadge } = state.header;
+        const wrapper = els.previewPagesWrapper;
+        const prevScrollTop = wrapper ? wrapper.scrollTop : 0;
+
+        // Render Quick Navigation Buttons (Default "Όπως γράφεται" first, then ΟΜΑΔΑ Α, Β, ... & Φύλλο Λύσεων)
+        const isOriginal = state.previewMode === 'original';
+        let navHtml = `<button type="button" class="preview-jump-btn ${isOriginal ? 'is-active' : ''}" data-mode="original">Όπως γράφεται</button>`;
+        versions.forEach((v) => {
+          const targetId = `sheet-group-${v.groupLetter}`;
+          const isActive = !isOriginal && state.activeNavTarget === targetId;
+          navHtml += `<button type="button" class="preview-jump-btn ${isActive ? 'is-active' : ''}" data-mode="versions" data-jump="${targetId}">${escapeHtml(v.label)}</button>`;
+        });
+        const isKeyActive = !isOriginal && state.activeNavTarget === 'sheet-answer-key';
+        navHtml += `<button type="button" class="preview-jump-btn ${isKeyActive ? 'is-active' : ''}" data-mode="versions" data-jump="sheet-answer-key">Φύλλο Λύσεων</button>`;
+        els.previewNav.innerHTML = navHtml;
+
+        if (versions.length === 0 || state.sections.length === 0) {
+          els.previewContainer.innerHTML = '<div class="a4-sheet"><div class="empty-state">Προσθέστε ερωτήσεις για να εμφανιστεί η προεπισκόπηση A4.</div></div>';
+          return;
+        }
+
+        if (isOriginal) {
+          const originalVersion = buildOriginalVersion();
+          els.previewContainer.innerHTML = renderTestSheetHtml(originalVersion, false, true);
+          runKaTeX(els.previewContainer);
+          paginateAllSheets();
+          applyQuestionGapUi();
+          applyFontSizeUi();
+          if (wrapper && prevScrollTop > 0) {
+            wrapper.scrollTop = prevScrollTop;
+          }
+          syncPreviewToCursor(true);
+          return;
+        }
+
+        const showBadge = parseInt(numVersions, 10) > 1 || showSingleBadge;
+        let pagesHtml = '';
+
+        // 1. Test Pages (One A4 sheet start per Version)
+        versions.forEach((version) => {
+          pagesHtml += renderTestSheetHtml(version, showBadge, false);
+        });
+
+        // 2. Teacher's Answer Key Sheet (Starts on a fresh A4 page)
+        pagesHtml += `<article class="a4-sheet answer-key-sheet" id="sheet-answer-key">`;
+        pagesHtml += `<header class="answer-key-header">`;
+        pagesHtml += `<h2 class="answer-key-title">Φύλλο Λύσεων (Για τον Εκπαιδευτικό)</h2>`;
+        pagesHtml += `<p class="answer-key-subtitle">${escapeHtml(title || 'Διαγώνισμα Μαθηματικών')}</p>`;
+        pagesHtml += `</header>`;
+
+        pagesHtml += `<div class="answer-key-grid">`;
+        versions.forEach((version) => {
+          pagesHtml += `<div class="answer-key-version">`;
+          pagesHtml += `<h3 class="answer-key-version-title">${escapeHtml(version.label)}</h3>`;
+
+          version.sections.forEach((sec) => {
+            if (sec.questions.length === 0) return;
+            pagesHtml += `<div class="answer-key-sec">`;
+            if (!sec.isImplicit && sec.title) {
+              pagesHtml += `<div class="answer-key-sec-title math-render">${formatRichMathText(sec.title)}</div>`;
+            }
+            pagesHtml += `<div class="answer-key-items">`;
+
+            sec.questions.forEach((q) => {
+              if (q.type === 'spacer') return;
+              if (q.type === 'mc') {
+                if (q.correctOpts.length === 0) {
+                  pagesHtml += `<div><strong>${q.displayNum}.</strong> <em>Δεν έχει οριστεί σωστή επιλογή (*)</em></div>`;
+                } else {
+                  const ansStr = q.correctOpts
+                    .map((o) => `<strong>${q.displayNum}-${escapeHtml(o.letter)}</strong> (<span class="math-render">${formatRichMathText(o.text)}</span>)`)
+                    .join(' , ');
+                  pagesHtml += `<div>${ansStr}</div>`;
+                }
+              } else if (q.type === 'matching') {
+                const pairStr = q.keyPairs
+                  .map((p) => `${p.num}-${escapeHtml(p.letter)}`)
+                  .join(', ');
+                pagesHtml += `<div><strong>Αντιστοίχιση:</strong> ${pairStr}</div>`;
+              } else {
+                pagesHtml += `<div><strong>${q.displayNum}.</strong> <em>Ανοιχτή ερώτηση / Πρόβλημα</em></div>`;
+              }
+            });
+
+            pagesHtml += `</div>`;
+            pagesHtml += `</div>`;
+          });
+
+          pagesHtml += `</div>`;
+        });
+        pagesHtml += `</div>`;
+        pagesHtml += `</article>`;
+
+        els.previewContainer.innerHTML = pagesHtml;
+        runKaTeX(els.previewContainer);
+        paginateAllSheets();
+        applyQuestionGapUi();
+        applyFontSizeUi();
+        if (wrapper && prevScrollTop > 0) {
+          wrapper.scrollTop = prevScrollTop;
+        }
+      }
+
+      // Split any A4 sheet that exceeds 1 page cleanly without breaking questions or losing usable space
+      function paginateAllSheets() {
+        const sheets = Array.from(els.previewContainer.querySelectorAll('.a4-sheet'));
+        sheets.forEach((sheet) => {
+          if (sheet.classList.contains('answer-key-sheet')) {
+            paginateAnswerKeySheet(sheet);
+          } else if (sheet.querySelector('.sheet-body')) {
+            paginateExamSheet(sheet);
+          }
+        });
+      }
+
+      function attachPageFooters(pages) {
+        if (pages.length <= 1) return;
+        const total = pages.length;
+        pages.forEach((pageEl, idx) => {
+          pageEl.classList.add('is-paginated');
+          const footer = document.createElement('footer');
+          footer.className = 'sheet-footer';
+          footer.setAttribute('aria-label', `Σελίδα ${idx + 1} από ${total}`);
+          const span = document.createElement('span');
+          span.textContent = `${idx + 1} / ${total}`;
+          footer.appendChild(span);
+          pageEl.appendChild(footer);
+        });
+      }
+
+      function paginateExamSheet(sheet) {
+        const sheetBody = sheet.querySelector('.sheet-body');
+        if (!sheetBody) return;
+        const mmToPx = sheet.offsetWidth / 210;
+        if (!mmToPx || mmToPx <= 0) return;
+
+        // 12.7mm top padding + 266.8mm usable body height (leaves room for footer, bottom padding, and print rounding)
+        const MAX_CONTENT_BOTTOM_MM = 12.7 + 266.8;
+        const maxBottomOffsetPx = MAX_CONTENT_BOTTOM_MM * mmToPx;
+
+        const initialLastSec = sheetBody.lastElementChild;
+        if (!initialLastSec) return;
+        const initialProbe = initialLastSec.lastElementChild || initialLastSec;
+        if (initialProbe.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top <= maxBottomOffsetPx) {
+          return;
+        }
+
+        // Collect atomic units (keeping each section title attached to its first question)
+        const units = [];
+        Array.from(sheetBody.children).forEach((secEl, secIdx) => {
+          const titleEl = secEl.querySelector(':scope > .exam-section-title');
+          const items = Array.from(secEl.children).filter((ch) => ch !== titleEl);
+          if (items.length === 0 && titleEl) {
+            units.push({ secIdx, titleEl, itemEl: null });
+          } else {
+            items.forEach((itemEl, itemIdx) => {
+              units.push({ secIdx, titleEl: itemIdx === 0 ? titleEl : null, itemEl });
+            });
+          }
+        });
+
+        sheetBody.innerHTML = '';
+        const pages = [sheet];
+        let currentPage = sheet;
+        let currentBody = sheetBody;
+        let currentPageHasItem = false;
+        let currentSecIdx = -1;
+        let currentSecEl = null;
+
+        function createContinuationPage(afterEl) {
+          const nextPage = document.createElement('article');
+          nextPage.className = 'a4-sheet is-continuation';
+          const inheritedGap = sheet.style.getPropertyValue('--question-gap') || (getClampedQuestionGap() + 'px');
+          const inheritedFont = sheet.style.getPropertyValue('--sheet-font-size') || (getClampedFontSize() + 'pt');
+          if (inheritedGap) {
+            nextPage.style.setProperty('--question-gap', inheritedGap);
+          }
+          if (inheritedFont) {
+            nextPage.style.setProperty('--sheet-font-size', inheritedFont);
+          }
+          const body = document.createElement('div');
+          body.className = 'sheet-body';
+          nextPage.appendChild(body);
+          afterEl.insertAdjacentElement('afterend', nextPage);
+          return nextPage;
+        }
+
+        function appendUnit(unit) {
+          const createdNewSec = unit.secIdx !== currentSecIdx;
+          if (createdNewSec) {
+            currentSecEl = document.createElement('section');
+            currentSecEl.className = 'exam-section';
+            currentBody.appendChild(currentSecEl);
+            currentSecIdx = unit.secIdx;
+          }
+          if (unit.titleEl) currentSecEl.appendChild(unit.titleEl);
+          if (unit.itemEl) currentSecEl.appendChild(unit.itemEl);
+          return createdNewSec;
+        }
+
+        units.forEach((unit) => {
+          const prevSecIdx = currentSecIdx;
+          const prevSecEl = currentSecEl;
+          const createdNewSec = appendUnit(unit);
+          const probe = unit.itemEl || unit.titleEl;
+          const usedHeight = probe.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+
+          if (usedHeight > maxBottomOffsetPx && currentPageHasItem) {
+            if (unit.itemEl && unit.itemEl.parentNode) unit.itemEl.parentNode.removeChild(unit.itemEl);
+            if (unit.titleEl && unit.titleEl.parentNode) unit.titleEl.parentNode.removeChild(unit.titleEl);
+            if (createdNewSec && currentSecEl && currentSecEl.parentNode) {
+              currentSecEl.parentNode.removeChild(currentSecEl);
+            }
+            currentSecIdx = prevSecIdx;
+            currentSecEl = prevSecEl;
+
+            const nextPage = createContinuationPage(currentPage);
+            pages.push(nextPage);
+            currentPage = nextPage;
+            currentBody = nextPage.querySelector('.sheet-body');
+            currentPageHasItem = false;
+            currentSecIdx = -1;
+            currentSecEl = null;
+
+            appendUnit(unit);
+            currentPageHasItem = true;
+          } else {
+            currentPageHasItem = true;
+          }
+        });
+
+        attachPageFooters(pages);
+      }
+
+      function paginateAnswerKeySheet(sheet) {
+        const grid = sheet.querySelector('.answer-key-grid');
+        if (!grid || !grid.lastElementChild) return;
+        const mmToPx = sheet.offsetWidth / 210;
+        if (!mmToPx || mmToPx <= 0) return;
+
+        const maxBottomOffsetPx = (12.7 + 266.8) * mmToPx;
+        if (grid.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top <= maxBottomOffsetPx) {
+          return;
+        }
+
+        const cards = Array.from(grid.children);
+        grid.innerHTML = '';
+        const pages = [sheet];
+        let currentPage = sheet;
+        let currentGrid = grid;
+        let currentPageHasItem = false;
+
+        cards.forEach((card) => {
+          currentGrid.appendChild(card);
+          const usedHeight = card.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+          if (usedHeight > maxBottomOffsetPx && currentPageHasItem) {
+            currentGrid.removeChild(card);
+            const nextPage = document.createElement('article');
+            nextPage.className = 'a4-sheet answer-key-sheet is-continuation';
+            const nextGrid = document.createElement('div');
+            nextGrid.className = 'answer-key-grid';
+            nextPage.appendChild(nextGrid);
+            currentPage.insertAdjacentElement('afterend', nextPage);
+
+            pages.push(nextPage);
+            currentPage = nextPage;
+            currentGrid = nextGrid;
+            currentGrid.appendChild(card);
+            currentPageHasItem = true;
+          } else {
+            currentPageHasItem = true;
+          }
+        });
+
+        attachPageFooters(pages);
+      }
+
+      // Reliable KaTeX auto-render execution
+      function runKaTeX(rootElement) {
+        if (typeof window.renderMathInElement === 'function') {
+          try {
+            window.renderMathInElement(rootElement, {
+              delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+              ],
+              throwOnError: false,
+              strict: false
+            });
+            rootElement.querySelectorAll('.katex').forEach((kEl) => {
+              if (kEl.querySelector('.mfrac')) {
+                kEl.classList.add('has-frac');
+              }
+            });
+          } catch (err) {
+            console.warn('KaTeX rendering notice:', err);
+          }
+        }
+      }
+
+      // Sync UI inputs from state.header
+      function syncHeaderInputsFromState() {
+        els.testTitleInput.value = state.header.title;
+        els.testSubtitleInput.value = state.header.subtitle;
+        els.studentInfoInput.value = state.header.studentInfo;
+        els.versionsSelect.value = String(state.header.numVersions);
+        els.showSingleBadgeCheckbox.checked = Boolean(state.header.showSingleBadge);
+        els.twoColOptionsCheckbox.checked = Boolean(state.header.twoColumnOptions);
+        updateBadgeControlVisibility();
+        applyQuestionGapUi();
+        applyFontSizeUi();
+      }
+
+      function updateBadgeControlVisibility() {
+        const isSingle = parseInt(state.header.numVersions, 10) === 1;
+        els.singleBadgeWrapper.style.display = isSingle ? 'flex' : 'none';
+        els.multiBadgeInfo.style.display = isSingle ? 'none' : 'inline';
+      }
+
+      // Detect whether cursor is already inside an open $...$ or $$...$$ math expression on the current line
+      function isCursorInsideMath(textBefore) {
+        const lastNl = textBefore.lastIndexOf('\n');
+        const lineBefore = lastNl >= 0 ? textBefore.slice(lastNl + 1) : textBefore;
+        let inInline = false;
+        let inDisplay = false;
+        for (let i = 0; i < lineBefore.length; i++) {
+          const ch = lineBefore[i];
+          if (ch === '\\') {
+            i++;
+            continue;
+          }
+          if (ch === '$') {
+            if (lineBefore[i + 1] === '$') {
+              if (!inInline) inDisplay = !inDisplay;
+              i++;
+            } else if (!inDisplay) {
+              inInline = !inInline;
+            }
+          }
+        }
+        return inInline || inDisplay;
+      }
+
+      // Insert KaTeX / syntax snippet at current cursor position in questionsInput
+      function insertAtCursor(snippet, cursorOffsetFromStart) {
+        const textarea = els.questionsInput;
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+
+        // Clean up leading newline if at very start or already preceded by blank line
+        let finalSnippet = snippet;
+        let leadingTrimmedChars = 0;
+        if (finalSnippet.startsWith('\n') && (start === 0 || before.endsWith('\n\n'))) {
+          finalSnippet = finalSnippet.replace(/^\n/, '');
+          leadingTrimmedChars += 1;
+        }
+
+        // If cursor is already inside $...$, strip redundant outer $...$ so nested math (e.g. power in fraction) stays valid
+        if (
+          finalSnippet.length >= 3 &&
+          finalSnippet.startsWith('$') &&
+          finalSnippet.endsWith('$') &&
+          !finalSnippet.startsWith('$$') &&
+          isCursorInsideMath(before)
+        ) {
+          finalSnippet = finalSnippet.slice(1, -1);
+          leadingTrimmedChars += 1;
+        }
+
+        textarea.value = before + finalSnippet + after;
+
+        let newCursorPos = start + finalSnippet.length;
+        if (typeof cursorOffsetFromStart === 'number' && !Number.isNaN(cursorOffsetFromStart)) {
+          newCursorPos = Math.max(start, start + cursorOffsetFromStart - leadingTrimmedChars);
+        }
+
+        textarea.focus();
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+
+        handleQuestionsTextChange();
+      }
+
+      // Wrap selected text (or insert wrapper tags) at cursor position
+      function wrapOrInsertAtCursor(wrapStart, wrapEnd) {
+        const textarea = els.questionsInput;
+        const start = textarea.selectionStart ?? textarea.value.length;
+        const end = textarea.selectionEnd ?? textarea.value.length;
+        const before = textarea.value.slice(0, start);
+        const selected = textarea.value.slice(start, end);
+        const after = textarea.value.slice(end);
+
+        textarea.value = before + wrapStart + selected + wrapEnd + after;
+        textarea.focus();
+
+        if (selected.length > 0) {
+          const newPos = start + wrapStart.length + selected.length + wrapEnd.length;
+          textarea.setSelectionRange(newPos, newPos);
+        } else {
+          const innerPos = start + wrapStart.length;
+          textarea.setSelectionRange(innerPos, innerPos);
+        }
+
+        handleQuestionsTextChange();
+      }
+
+      // Full rebuild when questions or locks change
+      function rebuildFromText() {
+        state.sections = parseRawText(state.rawText, state.sections);
+        syncActiveVariantFromCursor();
+        generateAllVersions();
+        renderManager();
+        renderPreview();
+      }
+
+      function handleQuestionsTextChange() {
+        state.rawText = els.questionsInput.value;
+        rebuildFromText();
+        scheduleAutosave();
+      }
+
+      function handleHeaderFieldChange() {
+        state.header.title = els.testTitleInput.value;
+        state.header.subtitle = els.testSubtitleInput.value;
+        state.header.studentInfo = els.studentInfoInput.value;
+        state.header.showSingleBadge = els.showSingleBadgeCheckbox.checked;
+        state.header.twoColumnOptions = els.twoColOptionsCheckbox.checked;
+        updateBadgeControlVisibility();
+        // Re-render preview without losing current shuffle
+        renderPreview();
+        scheduleAutosave();
+      }
+
+      function handleVersionsChange() {
+        state.header.numVersions = parseInt(els.versionsSelect.value, 10) || 1;
+        updateBadgeControlVisibility();
+        generateAllVersions();
+        if (state.previewMode === 'versions') {
+          const validTargets = state.generatedVersions
+            .map((v) => `sheet-group-${v.groupLetter}`)
+            .concat(['sheet-answer-key']);
+          if (!validTargets.includes(state.activeNavTarget)) {
+            state.activeNavTarget = 'sheet-group-Α';
+          }
+        }
+        renderPreview();
+        scheduleAutosave();
+      }
+
+      // Build serialized JSON payload (shared between localStorage autosave & .json export)
+      function buildProjectPayload() {
+        const lockSnapshots = state.sections.map((sec) => ({
+          title: sec.title,
+          isImplicit: sec.isImplicit,
+          locked: sec.locked,
+          questions: sec.questions.map((q) => {
+            const lockMode =
+              q.lockMode === 'range' || q.lockMode === 'exact' || q.lockMode === 'none'
+                ? q.lockMode
+                : (q.locked ? 'exact' : 'none');
+            return {
+              matchKey: q.matchKey,
+              type: q.type,
+              locked: lockMode === 'exact',
+              lockMode: lockMode,
+              lockMin: Number.isFinite(Number(q.lockMin)) ? Number(q.lockMin) : undefined,
+              lockMax: Number.isFinite(Number(q.lockMax)) ? Number(q.lockMax) : undefined,
+              lockLastOption: q.type === 'mc' ? Boolean(q.lockLastOption) : undefined,
+              lockColA: q.type === 'matching' ? Boolean(q.lockColA) : undefined,
+              variants:
+                q.type === 'variant_group'
+                  ? q.variants.map((vq) => ({
+                      matchKey: vq.matchKey,
+                      type: vq.type,
+                      lockLastOption: vq.type === 'mc' ? Boolean(vq.lockLastOption) : undefined,
+                      lockColA: vq.type === 'matching' ? Boolean(vq.lockColA) : undefined
+                    }))
+                  : undefined
+            };
+          })
+        }));
+
+        return {
+          app: 'PrimaryMathTestGenerator',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          header: state.header,
+          rawText: state.rawText,
+          lockSnapshots: lockSnapshots
+        };
+      }
+
+      function applyProjectData(data) {
+        const savedGap = Number(data.header.questionGap);
+        const savedFont = Number(data.header.fontSize);
+        state.header = {
+          title: typeof data.header.title === 'string' ? data.header.title : DEFAULT_TITLE,
+          subtitle: typeof data.header.subtitle === 'string' ? data.header.subtitle : '',
+          studentInfo: typeof data.header.studentInfo === 'string' ? data.header.studentInfo : DEFAULT_STUDENT_INFO,
+          numVersions: [1, 2, 3, 4].includes(Number(data.header.numVersions)) ? Number(data.header.numVersions) : 2,
+          showSingleBadge: typeof data.header.showSingleBadge === 'boolean' ? data.header.showSingleBadge : false,
+          twoColumnOptions: typeof data.header.twoColumnOptions === 'boolean' ? data.header.twoColumnOptions : true,
+          questionGap: Number.isFinite(savedGap)
+            ? Math.min(MAX_QUESTION_GAP, Math.max(MIN_QUESTION_GAP, savedGap))
+            : DEFAULT_QUESTION_GAP,
+          fontSize: Number.isFinite(savedFont)
+            ? Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, Math.round(savedFont * 2) / 2))
+            : DEFAULT_FONT_SIZE
+        };
+
+        state.rawText = data.rawText;
+
+        const fakePrevSections = Array.isArray(data.lockSnapshots) ? data.lockSnapshots : [];
+        state.sections = parseRawText(state.rawText, fakePrevSections);
+      }
+
+      function saveToLocalStorage() {
+        if (!isDirty) return;
+        try {
+          const payload = buildProjectPayload();
+          window.localStorage.setItem(AUTOSAVE_STORAGE_KEY, JSON.stringify(payload));
+          isDirty = false;
+          if (els.autosaveStatus) {
+            els.autosaveStatus.textContent = 'Μορφή A4 · Αυτόματη αποθήκευση';
+          }
+        } catch (err) {
+          // Ignore storage errors (e.g. private browsing restrictions)
+        }
+      }
+
+      function scheduleAutosave(immediate = false) {
+        isDirty = true;
+        if (autosaveTimer) {
+          clearTimeout(autosaveTimer);
+          autosaveTimer = null;
+        }
+        if (immediate) {
+          saveToLocalStorage();
+          return;
+        }
+        if (els.autosaveStatus) {
+          els.autosaveStatus.textContent = 'Μορφή A4 · Αποθήκευση...';
+        }
+        autosaveTimer = setTimeout(() => {
+          autosaveTimer = null;
+          saveToLocalStorage();
+        }, AUTOSAVE_DEBOUNCE_MS);
+      }
+
+      function restoreFromLocalStorage() {
+        try {
+          const raw = window.localStorage.getItem(AUTOSAVE_STORAGE_KEY);
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data || typeof data.rawText !== 'string' || !data.header) return false;
+          applyProjectData(data);
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      // Export Project as .json
+      function exportProjectJson() {
+        const payload = buildProjectPayload();
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const safeName = (state.header.title || 'diagwnisma-mathimatikwn')
+          .trim()
+          .toLowerCase()
+          .replace(/[^\p{L}\p{N}]+/gu, '-')
+          .replace(/^-+|-+$/g, '') || 'diagwnisma';
+        a.href = url;
+        a.download = `${safeName}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Το αρχείο .json εξήχθη επιτυχώς.');
+      }
+
+      // Import Project from .json
+      function importProjectJson(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = JSON.parse(String(e.target.result || ''));
+            if (!data || typeof data.rawText !== 'string' || !data.header) {
+              throw new Error('Μη έγκυρη μορφή αρχείου.');
+            }
+
+            applyProjectData(data);
+
+            syncHeaderInputsFromState();
+            els.questionsInput.value = state.rawText;
+            generateAllVersions();
+            renderManager();
+            renderPreview();
+            scheduleAutosave(true);
+            showToast('Το διαγώνισμα φορτώθηκε επιτυχώς από το αρχείο .json.');
+          } catch (err) {
+            showToast('Σφάλμα κατά την ανάγνωση του αρχείου .json.', true);
+          } finally {
+            els.importFileInput.value = '';
+          }
+        };
+        reader.readAsText(file, 'UTF-8');
+      }
+
+      // Event Listeners
+      function bindEvents() {
+        els.testTitleInput.addEventListener('input', handleHeaderFieldChange);
+        els.testSubtitleInput.addEventListener('input', handleHeaderFieldChange);
+        els.studentInfoInput.addEventListener('input', handleHeaderFieldChange);
+        els.showSingleBadgeCheckbox.addEventListener('change', handleHeaderFieldChange);
+        els.twoColOptionsCheckbox.addEventListener('change', handleHeaderFieldChange);
+        els.versionsSelect.addEventListener('change', handleVersionsChange);
+
+        els.questionsInput.addEventListener('input', handleQuestionsTextChange);
+        els.questionsInput.addEventListener('click', () => syncPreviewToCursor(true));
+        els.questionsInput.addEventListener('keyup', (e) => {
+          if (
+            ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)
+          ) {
+            syncPreviewToCursor(true);
+          }
+        });
+
+        if (els.syncCursorCheckbox) {
+          els.syncCursorCheckbox.addEventListener('change', () => {
+            state.syncCursor = els.syncCursorCheckbox.checked;
+            if (state.syncCursor) {
+              syncPreviewToCursor(true);
+            } else {
+              els.previewContainer.querySelectorAll('.is-cursor-focused').forEach((el) => {
+                el.classList.remove('is-cursor-focused');
+              });
+            }
+          });
+        }
+
+        // Math & formatting toolbar buttons
+        document.querySelectorAll('.tool-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            if (btn.classList.contains('tool-wrap-btn')) {
+              const wrapStart = btn.getAttribute('data-wrap-start') || '';
+              const wrapEnd = btn.getAttribute('data-wrap-end') || '';
+              wrapOrInsertAtCursor(wrapStart, wrapEnd);
+              return;
+            }
+            const rawSnippet = btn.getAttribute('data-snippet') || '';
+            // Unescape literal \n from attribute
+            const snippet = rawSnippet.replace(/\\n/g, '\n');
+            const offsetAttr = btn.getAttribute('data-cursor-offset');
+            const offset = offsetAttr !== null ? parseInt(offsetAttr, 10) : undefined;
+            insertAtCursor(snippet, offset);
+          });
+        });
+
+        // Quick "+ Νέα Ενότητα / Τίτλος Άσκησης" button
+        els.addSectionQuickBtn.addEventListener('click', () => {
+          const nextNum = state.sections.filter((s) => !s.isImplicit).length + 1;
+          const prefix = els.questionsInput.value.trim().length > 0 ? '\n\n' : '';
+          const snippet = `${prefix}=== Άσκηση ${nextNum}: Τίτλος άσκησης ===\n\n`;
+          insertAtCursor(snippet, prefix.length + `=== Άσκηση ${nextNum}: `.length);
+        });
+
+        function getQuestionNumberedMetrics(sec, qIdx) {
+          let numberedCount = 0;
+          let posNum = 1;
+          sec.questions.forEach((item, idx) => {
+            if (item.type !== 'spacer') {
+              numberedCount += 1;
+              if (idx === qIdx) posNum = numberedCount;
+            }
+          });
+          return { numberedCount, posNum };
+        }
+
+        function refreshAfterManagerLockChange() {
+          const prevScrollY = window.scrollY;
+          generateAllVersions();
+          renderManager();
+          renderPreview();
+          scheduleAutosave();
+          if (Math.abs(window.scrollY - prevScrollY) > 2) {
+            window.scrollTo(0, prevScrollY);
+          }
+        }
+
+        // Manager delegation for locks, range locks & options
+        els.managerContainer.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const action = btn.getAttribute('data-action');
+          const sIdx = parseInt(btn.getAttribute('data-sidx'), 10);
+          const qIdx = parseInt(btn.getAttribute('data-qidx'), 10);
+
+          if (action === 'toggle-section-lock' && state.sections[sIdx]) {
+            state.sections[sIdx].locked = !state.sections[sIdx].locked;
+            refreshAfterManagerLockChange();
+          } else if (action === 'toggle-question-lock' && state.sections[sIdx]?.questions[qIdx]) {
+            const sec = state.sections[sIdx];
+            const q = sec.questions[qIdx];
+            const currentMode =
+              q.lockMode === 'range' || q.lockMode === 'exact' || q.lockMode === 'none'
+                ? q.lockMode
+                : (q.locked ? 'exact' : 'none');
+            const nextMode = currentMode === 'exact' ? 'none' : 'exact';
+            q.lockMode = nextMode;
+            q.locked = nextMode === 'exact';
+            refreshAfterManagerLockChange();
+          } else if (action === 'toggle-question-range' && state.sections[sIdx]?.questions[qIdx]) {
+            const sec = state.sections[sIdx];
+            const q = sec.questions[qIdx];
+            const { numberedCount, posNum } = getQuestionNumberedMetrics(sec, qIdx);
+            if (numberedCount <= 1) return;
+            const currentMode =
+              q.lockMode === 'range' || q.lockMode === 'exact' || q.lockMode === 'none'
+                ? q.lockMode
+                : (q.locked ? 'exact' : 'none');
+            if (currentMode === 'range') {
+              q.lockMode = 'none';
+              q.locked = false;
+            } else {
+              q.lockMode = 'range';
+              q.locked = false;
+              if (!Number.isFinite(Number(q.lockMin)) || !Number.isFinite(Number(q.lockMax))) {
+                q.lockMin = Math.max(1, posNum - 1);
+                q.lockMax = Math.min(numberedCount, posNum + 1);
+              } else {
+                q.lockMin = Math.min(numberedCount, Math.max(1, Math.round(Number(q.lockMin))));
+                q.lockMax = Math.min(numberedCount, Math.max(q.lockMin, Math.round(Number(q.lockMax))));
+              }
+            }
+            refreshAfterManagerLockChange();
+          }
+        });
+
+        els.managerContainer.addEventListener('change', (e) => {
+          const ctrl = e.target.closest('[data-action]');
+          if (!ctrl) return;
+          const action = ctrl.getAttribute('data-action');
+          const sIdx = parseInt(ctrl.getAttribute('data-sidx'), 10);
+          const qIdx = parseInt(ctrl.getAttribute('data-qidx'), 10);
+
+          if ((action === 'set-lock-min' || action === 'set-lock-max') && state.sections[sIdx]?.questions[qIdx]) {
+            const sec = state.sections[sIdx];
+            const q = sec.questions[qIdx];
+            const { numberedCount, posNum } = getQuestionNumberedMetrics(sec, qIdx);
+            const val = Math.min(numberedCount, Math.max(1, parseInt(ctrl.value, 10) || posNum));
+            const curCfg = getQuestionLockConfig(q, numberedCount, posNum);
+            let nextMin = curCfg.mode === 'range' ? curCfg.min : Math.max(1, posNum - 1);
+            let nextMax = curCfg.mode === 'range' ? curCfg.max : Math.min(numberedCount, posNum + 1);
+
+            if (action === 'set-lock-min') {
+              nextMin = val;
+              if (nextMax < nextMin) nextMax = nextMin;
+            } else {
+              nextMax = val;
+              if (nextMin > nextMax) nextMin = nextMax;
+            }
+            q.lockMode = 'range';
+            q.locked = false;
+            q.lockMin = nextMin;
+            q.lockMax = nextMax;
+            refreshAfterManagerLockChange();
+            return;
+          }
+
+          const vIdxAttr = ctrl.getAttribute('data-vidx');
+          const baseQ = state.sections[sIdx]?.questions[qIdx];
+          if (!baseQ) return;
+
+          const q =
+            vIdxAttr !== null && baseQ.type === 'variant_group'
+              ? baseQ.variants[parseInt(vIdxAttr, 10)]
+              : baseQ;
+          if (!q) return;
+
+          if (action === 'toggle-last-option') {
+            q.lockLastOption = ctrl.checked;
+            generateAllVersions();
+            renderPreview();
+            scheduleAutosave();
+          } else if (action === 'toggle-col-a-lock') {
+            q.lockColA = ctrl.checked;
+            generateAllVersions();
+            renderPreview();
+            scheduleAutosave();
+          }
+        });
+
+        // Inline variant switcher & || option cycler inside "Όπως γράφεται" preview
+        els.previewContainer.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-variant-key][data-variant-idx]');
+          if (btn) {
+            const key = btn.getAttribute('data-variant-key');
+            const idx = parseInt(btn.getAttribute('data-variant-idx'), 10);
+            if (!key || Number.isNaN(idx)) return;
+            state.activeVariantByKey[key] = idx;
+            renderPreview();
+            return;
+          }
+          const optBtn = e.target.closest('button[data-opt-variant-key][data-opt-variant-next]');
+          if (optBtn) {
+            const optKey = optBtn.getAttribute('data-opt-variant-key');
+            const nextIdx = parseInt(optBtn.getAttribute('data-opt-variant-next'), 10);
+            if (!optKey || Number.isNaN(nextIdx)) return;
+            state.activeOptVariantByKey[optKey] = nextIdx;
+            renderPreview();
+          }
+        });
+
+        // Question spacing & font size +/- / reset controls
+        function adjustQuestionGap(nextGap) {
+          const clamped = Math.min(MAX_QUESTION_GAP, Math.max(MIN_QUESTION_GAP, nextGap));
+          if (clamped === state.header.questionGap) return;
+          state.header.questionGap = clamped;
+          renderPreview();
+          scheduleAutosave();
+        }
+
+        function adjustFontSize(nextSize) {
+          const rounded = Math.round(nextSize * 2) / 2;
+          const clamped = Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, rounded));
+          if (clamped === state.header.fontSize) return;
+          state.header.fontSize = clamped;
+          renderPreview();
+          scheduleAutosave();
+        }
+
+        if (els.gapDecBtn) {
+          els.gapDecBtn.addEventListener('click', () => {
+            adjustQuestionGap((state.header.questionGap || DEFAULT_QUESTION_GAP) - QUESTION_GAP_STEP);
+          });
+        }
+        if (els.gapIncBtn) {
+          els.gapIncBtn.addEventListener('click', () => {
+            adjustQuestionGap((state.header.questionGap || DEFAULT_QUESTION_GAP) + QUESTION_GAP_STEP);
+          });
+        }
+        if (els.gapValueBtn) {
+          els.gapValueBtn.addEventListener('click', () => {
+            adjustQuestionGap(DEFAULT_QUESTION_GAP);
+          });
+        }
+
+        if (els.fontDecBtn) {
+          els.fontDecBtn.addEventListener('click', () => {
+            adjustFontSize((state.header.fontSize || DEFAULT_FONT_SIZE) - FONT_SIZE_STEP);
+          });
+        }
+        if (els.fontIncBtn) {
+          els.fontIncBtn.addEventListener('click', () => {
+            adjustFontSize((state.header.fontSize || DEFAULT_FONT_SIZE) + FONT_SIZE_STEP);
+          });
+        }
+        if (els.fontValueBtn) {
+          els.fontValueBtn.addEventListener('click', () => {
+            adjustFontSize(DEFAULT_FONT_SIZE);
+          });
+        }
+
+        if (els.resetLayoutDefaultsBtn) {
+          els.resetLayoutDefaultsBtn.addEventListener('click', () => {
+            const changed =
+              getClampedQuestionGap() !== DEFAULT_QUESTION_GAP ||
+              getClampedFontSize() !== DEFAULT_FONT_SIZE;
+            if (!changed) return;
+            state.header.questionGap = DEFAULT_QUESTION_GAP;
+            state.header.fontSize = DEFAULT_FONT_SIZE;
+            renderPreview();
+            scheduleAutosave();
+            showToast('Επαναφορά προεπιλεγμένου διάκενου (8px) και γραμματοσειράς (11pt).');
+          });
+        }
+
+        // Preview mode & quick jump
+        els.previewNav.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-mode]');
+          if (!btn) return;
+          const mode = btn.getAttribute('data-mode');
+          if (mode === 'original') {
+            state.previewMode = 'original';
+            state.activeNavTarget = 'original';
+            renderPreview();
+            return;
+          }
+
+          const targetId = btn.getAttribute('data-jump') || 'sheet-group-Α';
+          state.previewMode = 'versions';
+          state.activeNavTarget = targetId;
+          renderPreview();
+
+          const targetEl = document.getElementById(targetId);
+          if (targetEl) {
+            const wrapper = els.previewPagesWrapper;
+            if (window.innerWidth > 1180 && wrapper && wrapper.scrollHeight > wrapper.clientHeight + 4) {
+              const targetTop =
+                wrapper.scrollTop + (targetEl.getBoundingClientRect().top - wrapper.getBoundingClientRect().top) - 6;
+              wrapper.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+            } else {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }
+        });
+
+        // Shuffle triggers
+        function triggerReshuffle() {
+          generateAllVersions();
+          state.previewMode = 'versions';
+          state.activeNavTarget = 'sheet-group-Α';
+          renderPreview();
+          showToast('Οι ομάδες ανακατεύτηκαν επιτυχώς.');
+        }
+
+        els.shuffleBtn.addEventListener('click', triggerReshuffle);
+        els.shuffleBtnSecondary.addEventListener('click', triggerReshuffle);
+
+        // Load Sample
+        els.loadSampleBtn.addEventListener('click', () => {
+          state.header.title = DEFAULT_TITLE;
+          state.header.subtitle = '';
+          state.header.studentInfo = DEFAULT_STUDENT_INFO;
+          state.rawText = SAMPLE_TEST_TEXT;
+          state.sections = [];
+          syncHeaderInputsFromState();
+          els.questionsInput.value = state.rawText;
+          rebuildFromText();
+          scheduleAutosave(true);
+          showToast('Φορτώθηκε το δείγμα διαγωνίσματος ΣΤ΄ Δημοτικού.');
+        });
+
+        // Export / Import JSON
+        els.exportJsonBtn.addEventListener('click', exportProjectJson);
+        els.importJsonBtn.addEventListener('click', () => els.importFileInput.click());
+        els.importFileInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          importProjectJson(file);
+        });
+
+        // Print
+        els.printBtn.addEventListener('click', () => {
+          updatePrintScope();
+          applyQuestionGapUi();
+          applyFontSizeUi();
+          window.print();
+        });
+
+        window.addEventListener('beforeprint', () => {
+          updatePrintScope();
+          applyQuestionGapUi();
+          applyFontSizeUi();
+        });
+
+        // About Modal open/close
+        function openAboutModal() {
+          if (!els.aboutModalBackdrop) return;
+          els.aboutModalBackdrop.hidden = false;
+          requestAnimationFrame(() => {
+            els.aboutModalBackdrop.classList.add('is-open');
+          });
+          if (els.aboutCloseBtn) {
+            els.aboutCloseBtn.focus();
+          }
+        }
+
+        function closeAboutModal() {
+          if (!els.aboutModalBackdrop || els.aboutModalBackdrop.hidden) return;
+          els.aboutModalBackdrop.classList.remove('is-open');
+          setTimeout(() => {
+            if (!els.aboutModalBackdrop.classList.contains('is-open')) {
+              els.aboutModalBackdrop.hidden = true;
+            }
+          }, 180);
+          if (els.aboutBtn) {
+            els.aboutBtn.focus();
+          }
+        }
+
+        if (els.aboutBtn) {
+          els.aboutBtn.addEventListener('click', openAboutModal);
+        }
+        if (els.aboutCloseBtn) {
+          els.aboutCloseBtn.addEventListener('click', closeAboutModal);
+        }
+        if (els.aboutCloseIconBtn) {
+          els.aboutCloseIconBtn.addEventListener('click', closeAboutModal);
+        }
+        if (els.aboutModalBackdrop) {
+          els.aboutModalBackdrop.addEventListener('click', (e) => {
+            if (e.target === els.aboutModalBackdrop) {
+              closeAboutModal();
+            }
+          });
+        }
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && els.aboutModalBackdrop && !els.aboutModalBackdrop.hidden) {
+            closeAboutModal();
+          }
+        });
+
+        // Flush pending autosave cleanly when leaving or hiding tab (only if dirty)
+        window.addEventListener('pagehide', saveToLocalStorage);
+        window.addEventListener('beforeunload', saveToLocalStorage);
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') {
+            saveToLocalStorage();
+          }
+        });
+      }
+
+      // Initialize application
+      function init() {
+        if (els.aboutVersionText) {
+          els.aboutVersionText.textContent = `Έκδοση ${APP_VERSION}`;
+        }
+        const restored = restoreFromLocalStorage();
+        syncHeaderInputsFromState();
+        els.questionsInput.value = state.rawText;
+        bindEvents();
+        if (restored) {
+          generateAllVersions();
+          renderManager();
+          renderPreview();
+          if (els.autosaveStatus) {
+            els.autosaveStatus.textContent = 'Μορφή A4 · Επαναφορά από αποθήκευση';
+          }
+        } else {
+          rebuildFromText();
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      // Extra safeguard if KaTeX deferred scripts or web fonts complete right around load
+      window.addEventListener('load', () => {
+        runKaTeX(els.managerContainer);
+        renderPreview();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => {
+            renderPreview();
+          });
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
