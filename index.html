@@ -1890,7 +1890,7 @@
       // =========================================================================
       // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - Αλλάξτε χειροκίνητα την τιμή της σταθεράς παρακάτω
       // =========================================================================
-      const APP_VERSION = '1.3.0';
+      const APP_VERSION = '1.4.0';
 
       const GREEK_LETTERS = ['α', 'β', 'γ', 'δ', 'ε', 'στ', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν'];
       const GROUP_NAMES = ['Α', 'Β', 'Γ', 'Δ'];
@@ -1943,6 +1943,27 @@
       const MAX_FONT_SIZE = 18;
       const FONT_SIZE_STEP = 0.5;
 
+      function createRandomSeed() {
+        if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+          const buf = new Uint32Array(1);
+          window.crypto.getRandomValues(buf);
+          return buf[0] >>> 0;
+        }
+        return (Math.random() * 0x100000000) >>> 0;
+      }
+
+      // Deterministic Mulberry32 PRNG for reproducible group shuffling via shuffleSeed
+      function createSeededRng(seed) {
+        let a = (Number(seed) >>> 0);
+        return function () {
+          a |= 0;
+          a = (a + 0x6D2B79F5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
       // Application State
       const state = {
         header: {
@@ -1955,6 +1976,7 @@
           questionGap: DEFAULT_QUESTION_GAP,
           fontSize: DEFAULT_FONT_SIZE
         },
+        shuffleSeed: createRandomSeed(),
         rawText: SAMPLE_TEST_TEXT,
         sections: [],
         generatedVersions: [],
@@ -2076,11 +2098,12 @@
         return String(str || '').trim().replace(/\s+/g, ' ').toLowerCase();
       }
 
-      // Fisher-Yates (Knuth) Shuffle - returns a new shuffled array
-      function fisherYatesShuffle(arr) {
+      // Fisher-Yates (Knuth) Shuffle - returns a new shuffled array (supports seeded rngFn)
+      function fisherYatesShuffle(arr, rngFn) {
+        const rand = typeof rngFn === 'function' ? rngFn : Math.random;
         const copy = arr.slice();
         for (let i = copy.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          const j = Math.floor(rand() * (i + 1));
           const temp = copy[i];
           copy[i] = copy[j];
           copy[j] = temp;
@@ -2559,9 +2582,9 @@
       }
 
       // Kuhn's maximum bipartite matching (+ Hall conflict witness extraction for failed nodes)
-      function findMaximumBipartiteMatching(constrained, numSlots, randomize) {
-        const ordered = randomize ? fisherYatesShuffle(constrained) : constrained.slice();
-        const adj = ordered.map((c) => (randomize ? fisherYatesShuffle(c.allowed) : c.allowed.slice()));
+      function findMaximumBipartiteMatching(constrained, numSlots, randomize, rngFn) {
+        const ordered = randomize ? fisherYatesShuffle(constrained, rngFn) : constrained.slice();
+        const adj = ordered.map((c) => (randomize ? fisherYatesShuffle(c.allowed, rngFn) : c.allowed.slice()));
         const slotOwner = new Array(numSlots).fill(-1);
         const itemSlot = new Array(ordered.length).fill(-1);
         const conflictNodes = new Set();
@@ -2627,7 +2650,7 @@
       }
 
       // Shuffle questions respecting exact locks, range locks (#min-#max), and fixed spacers
-      function shuffleQuestionsWithConstraints(questions) {
+      function shuffleQuestionsWithConstraints(questions, rngFn) {
         const { numberedItems, numberedSlotIndices, total, constrained, unlocked } =
           extractSectionLockConstraints(questions);
 
@@ -2637,7 +2660,7 @@
 
         if (constrained.length === 0) {
           const result = questions.slice();
-          const shuffled = fisherYatesShuffle(numberedItems);
+          const shuffled = fisherYatesShuffle(numberedItems, rngFn);
           for (let i = 0; i < numberedSlotIndices.length; i++) {
             result[numberedSlotIndices[i]] = shuffled[i];
           }
@@ -2645,11 +2668,11 @@
         }
 
         // Phase 1: Randomized MRV backtracking with forward checking for uniform random valid placement
-        const mrvOrder = fisherYatesShuffle(constrained)
+        const mrvOrder = fisherYatesShuffle(constrained, rngFn)
           .sort((a, b) => a.allowed.length - b.allowed.length)
           .map((c) => ({
             item: c.item,
-            allowed: fisherYatesShuffle(c.allowed)
+            allowed: fisherYatesShuffle(c.allowed, rngFn)
           }));
 
         const usedSlots = new Array(total).fill(false);
@@ -2704,7 +2727,7 @@
           }
         } else {
           // Phase 2: Randomized Kuhn's bipartite matching (guaranteed polynomial solution if feasible, best-effort on conflict)
-          const matchRes = findMaximumBipartiteMatching(constrained, total, true);
+          const matchRes = findMaximumBipartiteMatching(constrained, total, true, rngFn);
           const placed = new Set();
           matchRes.assignment.forEach((slot, item) => {
             slotAssignment[slot] = item;
@@ -2712,7 +2735,8 @@
           });
           // Fallback for any conflicting constrained items that could not fit
           const leftovers = fisherYatesShuffle(
-            constrained.filter((c) => !placed.has(c.item)).map((c) => c.item)
+            constrained.filter((c) => !placed.has(c.item)).map((c) => c.item),
+            rngFn
           );
           let lIdx = 0;
           for (let s = 0; s < total && lIdx < leftovers.length; s++) {
@@ -2723,7 +2747,7 @@
         }
 
         // Fill remaining free numbered slots with shuffled unlocked questions
-        const shuffledUnlocked = fisherYatesShuffle(unlocked);
+        const shuffledUnlocked = fisherYatesShuffle(unlocked, rngFn);
         let uIdx = 0;
         for (let s = 0; s < total; s++) {
           if (!slotAssignment[s]) {
@@ -2739,7 +2763,7 @@
       }
 
       // Shuffle helper respecting locked slots (positions with isLockedFn(item) === true remain pinned)
-      function shuffleWithLocks(items, isLockedFn) {
+      function shuffleWithLocks(items, isLockedFn, rngFn) {
         const result = new Array(items.length);
         const unlocked = [];
         const unlockedIndices = [];
@@ -2753,7 +2777,7 @@
           }
         }
 
-        const shuffledUnlocked = fisherYatesShuffle(unlocked);
+        const shuffledUnlocked = fisherYatesShuffle(unlocked, rngFn);
         for (let k = 0; k < unlockedIndices.length; k++) {
           result[unlockedIndices[k]] = shuffledUnlocked[k];
         }
@@ -2761,9 +2785,13 @@
         return result;
       }
 
-      // Generate all versions (Ομάδα Α, Β, Γ, Δ) using Fisher-Yates
+      // Generate all versions (Ομάδα Α, Β, Γ, Δ) using deterministic seeded Fisher-Yates
       function generateAllVersions() {
         const count = Math.min(4, Math.max(1, parseInt(state.header.numVersions, 10) || 1));
+        if (!Number.isInteger(state.shuffleSeed) || state.shuffleSeed < 0) {
+          state.shuffleSeed = createRandomSeed();
+        }
+        const rng = createSeededRng(state.shuffleSeed);
 
         // Pre-assign shuffled alternative variants (both option-level || and question-level ---) across versions
         const variantAssignments = new Map();
@@ -2778,7 +2806,7 @@
             } else {
               let pool = [];
               while (pool.length < count) {
-                pool = pool.concat(fisherYatesShuffle(variants));
+                pool = pool.concat(fisherYatesShuffle(variants, rng));
               }
               variantAssignments.set(opt, pool.slice(0, count));
             }
@@ -2790,7 +2818,7 @@
             if (q.type === 'variant_group') {
               let qPool = [];
               while (qPool.length < count) {
-                qPool = qPool.concat(fisherYatesShuffle(q.variants));
+                qPool = qPool.concat(fisherYatesShuffle(q.variants, rng));
               }
               questionVariantAssignments.set(q, qPool.slice(0, count));
               q.variants.forEach(registerOptionVariants);
@@ -2804,10 +2832,10 @@
 
         for (let v = 0; v < count; v++) {
           const groupLetter = GROUP_NAMES[v];
-          const orderedSections = shuffleWithLocks(state.sections, (sec) => sec.locked);
+          const orderedSections = shuffleWithLocks(state.sections, (sec) => sec.locked, rng);
 
           const versionSections = orderedSections.map((sec) => {
-            const orderedQuestions = shuffleQuestionsWithConstraints(sec.questions);
+            const orderedQuestions = shuffleQuestionsWithConstraints(sec.questions, rng);
             let questionCounter = 0;
 
             const renderedQuestions = orderedQuestions.map((rawQ) => {
@@ -2825,10 +2853,10 @@
               if (q.type === 'mc') {
                 let shuffledOpts;
                 if (q.lockLastOption && q.options.length > 1) {
-                  const head = fisherYatesShuffle(q.options.slice(0, q.options.length - 1));
+                  const head = fisherYatesShuffle(q.options.slice(0, q.options.length - 1), rng);
                   shuffledOpts = head.concat([q.options[q.options.length - 1]]);
                 } else {
-                  shuffledOpts = fisherYatesShuffle(q.options);
+                  shuffledOpts = fisherYatesShuffle(q.options, rng);
                 }
 
                 const labeledOpts = shuffledOpts.map((opt, idx) => {
@@ -2854,8 +2882,8 @@
               }
 
               if (q.type === 'matching') {
-                const colA = q.lockColA ? q.pairs.slice() : fisherYatesShuffle(q.pairs);
-                const colB = fisherYatesShuffle(q.pairs);
+                const colA = q.lockColA ? q.pairs.slice() : fisherYatesShuffle(q.pairs, rng);
+                const colB = fisherYatesShuffle(q.pairs, rng);
 
                 const colAItems = colA.map((pair, idx) => ({
                   num: idx + 1,
@@ -4179,6 +4207,7 @@
           app: 'PrimaryMathTestGenerator',
           version: 1,
           exportedAt: new Date().toISOString(),
+          shuffleSeed: state.shuffleSeed,
           header: state.header,
           rawText: state.rawText,
           lockSnapshots: lockSnapshots
@@ -4188,6 +4217,7 @@
       function applyProjectData(data) {
         const savedGap = Number(data.header.questionGap);
         const savedFont = Number(data.header.fontSize);
+        const savedSeed = Number(data.shuffleSeed);
         state.header = {
           title: typeof data.header.title === 'string' ? data.header.title : DEFAULT_TITLE,
           subtitle: typeof data.header.subtitle === 'string' ? data.header.subtitle : '',
@@ -4202,6 +4232,10 @@
             ? Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, Math.round(savedFont * 2) / 2))
             : DEFAULT_FONT_SIZE
         };
+
+        state.shuffleSeed = Number.isFinite(savedSeed) && savedSeed >= 0
+          ? (savedSeed >>> 0)
+          : createRandomSeed();
 
         state.rawText = data.rawText;
 
@@ -4605,10 +4639,12 @@
 
         // Shuffle triggers
         function triggerReshuffle() {
+          state.shuffleSeed = createRandomSeed();
           generateAllVersions();
           state.previewMode = 'versions';
           state.activeNavTarget = 'sheet-group-Α';
           renderPreview();
+          scheduleAutosave();
           showToast('Οι ομάδες ανακατεύτηκαν επιτυχώς.');
         }
 
@@ -4620,6 +4656,7 @@
           state.header.title = DEFAULT_TITLE;
           state.header.subtitle = '';
           state.header.studentInfo = DEFAULT_STUDENT_INFO;
+          state.shuffleSeed = createRandomSeed();
           state.rawText = SAMPLE_TEST_TEXT;
           state.sections = [];
           syncHeaderInputsFromState();
