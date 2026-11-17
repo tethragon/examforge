@@ -398,6 +398,30 @@
       background-color: #dbeafe;
     }
 
+    .tool-btn-toggle {
+      margin-left: auto;
+      background-color: var(--bg-surface);
+      border-color: var(--border-hairline);
+      color: var(--text-secondary);
+    }
+
+    .tool-btn-toggle.is-open {
+      background-color: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .text-tools-drawer {
+      margin-top: -4px;
+      margin-bottom: 10px;
+      background-color: #f8fafc;
+      border-style: dashed;
+    }
+
+    .text-tools-drawer[hidden] {
+      display: none;
+    }
+
     .syntax-help {
       margin-top: 10px;
       padding-top: 10px;
@@ -405,6 +429,27 @@
       font-size: 12px;
       color: var(--text-muted);
       line-height: 1.6;
+    }
+
+    .syntax-help-more {
+      margin-top: 6px;
+    }
+
+    .syntax-help-more summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent);
+      user-select: none;
+      display: inline-block;
+    }
+
+    .syntax-help-more summary:hover {
+      text-decoration: underline;
+    }
+
+    .syntax-help-more-body {
+      margin-top: 4px;
+      padding-left: 2px;
     }
 
     .syntax-help code {
@@ -1051,7 +1096,8 @@
     }
 
     .test-question.is-variant-slot,
-    .matching-block.is-variant-slot {
+    .matching-block.is-variant-slot,
+    .tf-block.is-variant-slot {
       position: relative;
       border-left: 2px solid #93c5fd;
       padding-left: 8px;
@@ -1186,7 +1232,8 @@
     .matching-columns {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px 28px;
+      align-items: baseline;
+      gap: 4px 28px;
       margin: 4px 0 10px 8px;
     }
 
@@ -1196,7 +1243,8 @@
       color: #334155;
       border-bottom: 1px solid #cbd5e1;
       padding-bottom: 2px;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
+      align-self: stretch;
     }
 
     .matching-row-item {
@@ -1205,6 +1253,7 @@
       gap: 8px;
       line-height: 1.45;
       padding: 2px 0;
+      min-width: 0;
     }
 
     .matching-key-label {
@@ -1245,6 +1294,211 @@
       color: #065f46;
       font-weight: 700;
       border-bottom-color: #047857;
+    }
+
+    /* True / False (Σ / Λ) Exercise */
+    .tf-block {
+      margin-bottom: calc(var(--question-gap, 8px) + 4px);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .tf-prompt {
+      margin-bottom: 6px;
+      line-height: 1.45;
+      font-weight: 500;
+    }
+
+    .tf-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin: 2px 0 4px 8px;
+    }
+
+    .tf-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 3px 0;
+      border-bottom: 1px dotted #cbd5e1;
+      line-height: 1.45;
+    }
+
+    .tf-row:last-child {
+      border-bottom: none;
+    }
+
+    .tf-row-main {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tf-letter {
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .tf-stmt-text {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .question-line.tf-single-line {
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tf-answer-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 2.35em;
+      height: 1.75em;
+      border: 1.35px solid #334155;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 0.95em;
+      line-height: 1;
+      color: #0f172a;
+      background-color: #ffffff;
+      user-select: none;
+    }
+
+    .tf-answer-box.is-correct-preview {
+      background-color: #ecfdf5;
+      border-color: #047857;
+      color: #065f46;
+      box-shadow: inset 0 0 0 0.5px #047857;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .mgr-tf-badge {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 0 5px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+
+    .mgr-tf-badge.is-true {
+      background-color: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .mgr-tf-badge.is-false {
+      background-color: #fff7ed;
+      border-color: #fed7aa;
+      color: #9a3412;
+    }
+
+    /* Inline Rich Formatting & Reading Comprehension Passage */
+    .fmt-small {
+      font-size: 0.85em;
+    }
+
+    .fmt-right {
+      display: block;
+      text-align: right;
+    }
+
+    .fmt-center {
+      display: block;
+      text-align: center;
+    }
+
+    .fmt-source {
+      display: block;
+      text-align: right;
+      font-size: 0.85em;
+      font-style: italic;
+      color: #334155;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .passage-block {
+      margin-bottom: calc(var(--question-gap, 8px) + 6px);
+      font-size: var(--sheet-font-size, 11pt);
+      line-height: 1.55;
+      color: #0f172a;
+    }
+
+    .passage-block.has-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      background-color: #f8fafc;
+      padding: 10px 14px;
+    }
+
+    .passage-block.has-box.is-split-top {
+      border-bottom: none;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-bottom: 0;
+    }
+
+    .passage-block.has-box.is-split-bottom {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .passage-body {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .passage-p {
+      position: relative;
+      margin: 0;
+      text-align: justify;
+      hyphens: auto;
+    }
+
+    .passage-heading {
+      margin: 0;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .passage-source {
+      margin: 2px 0 0;
+      text-align: right;
+      font-size: 0.85em;
+      font-style: italic;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    .passage-block.has-line-numbers .passage-p {
+      padding-left: 2.15em;
+    }
+
+    .passage-line-num {
+      position: absolute;
+      left: 0;
+      width: 1.55em;
+      text-align: right;
+      font-size: 0.76em;
+      font-weight: 600;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+      line-height: 1.55;
+      pointer-events: none;
     }
 
     /* Answer Key Sheet */
@@ -1666,6 +1920,7 @@
 
       .test-question,
       .matching-block,
+      .tf-block,
       .writing-lines,
       .answer-key-version {
         break-inside: avoid;
@@ -1678,7 +1933,8 @@
       }
 
       .test-question.is-variant-slot,
-      .matching-block.is-variant-slot {
+      .matching-block.is-variant-slot,
+      .tf-block.is-variant-slot {
         border-left: none !important;
         padding-left: 0 !important;
         margin-left: 0 !important;
@@ -1688,6 +1944,20 @@
       .spacer-block {
         border-left: none !important;
         padding-left: 0 !important;
+      }
+
+      .passage-block.has-box {
+        background-color: #ffffff !important;
+        border-color: #64748b !important;
+      }
+
+      .fmt-source,
+      .passage-source {
+        color: #1e293b !important;
+      }
+
+      .passage-line-num {
+        color: #475569 !important;
       }
     }
   </style>
@@ -1792,10 +2062,24 @@
           <button type="button" class="tool-btn" data-snippet="$\le$" title="Μικρότερο ή ίσο">≤</button>
           <button type="button" class="tool-btn" data-snippet="$\ge$" title="Μεγαλύτερο ή ίσο">≥</button>
           <button type="button" class="tool-btn" data-snippet=" == " title="Διαχωριστικό αντιστοίχισης">==</button>
+          <button type="button" class="tool-btn" data-snippet=" [Σ]" title="Προσθήκη ένδειξης Σωστό [Σ] στη γραμμή">[Σ]</button>
+          <button type="button" class="tool-btn" data-snippet=" [Λ]" title="Προσθήκη ένδειξης Λάθος [Λ] στη γραμμή">[Λ]</button>
           <button type="button" class="tool-btn" data-snippet=" || " title="Εναλλακτική απάντηση ανά ομάδα">Εναλλακτική ||</button>
           <button type="button" class="tool-btn" data-snippet="\n---\n" title="Εναλλακτική ερώτηση για την ίδια θέση (διαφορετική εκφώνηση &amp; απαντήσεις ανά ομάδα)">Εναλλακτική Ερώτηση ---</button>
           <button type="button" class="tool-btn" data-snippet="\n[lines:4]" title="Γραμμές γραφής μαθητή">[lines:4]</button>
           <button type="button" class="tool-btn" data-snippet="\n[space:2]" title="Έξτρα κενές σειρές (χωρίς γραμμές) για υπολογισμούς ή κενό χώρο">[space:2]</button>
+          <button type="button" id="toggleTextToolsBtn" class="tool-btn tool-btn-toggle" aria-expanded="false" aria-controls="textToolsDrawer" title="Εμφάνιση/απόκρυψη εργαλείων κειμένου κατανόησης, πηγής και στοίχισης">Κείμενο &amp; Μορφοποίηση ▾</button>
+        </div>
+
+        <div id="textToolsDrawer" class="math-toolbar text-tools-drawer" hidden role="toolbar" aria-label="Εργαλεία κειμένου κατανόησης και μορφοποίησης">
+          <button type="button" class="tool-btn tool-btn-section" data-snippet="\n[text]\n\n[/text]\n" data-cursor-offset="8" title="Εισαγωγή πολυπαραγράφου κειμένου κατανόησης (χωρίς πλαίσιο)">+ Κείμενο</button>
+          <button type="button" class="tool-btn tool-btn-section" data-snippet="\n[text:box]\n\n[/text]\n" data-cursor-offset="12" title="Εισαγωγή κειμένου κατανόησης μέσα σε πλαίσιο">+ Κείμενο (Πλαίσιο)</button>
+          <button type="button" class="tool-btn tool-btn-section" data-snippet="\n[text:box,lines]\n\n[/text]\n" data-cursor-offset="18" title="Εισαγωγή κειμένου σε πλαίσιο με αρίθμηση γραμμών (1, 5, 10...)">+ Κείμενο (Πλαίσιο &amp; Γραμμές)</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="[source: " data-wrap-end="]" title="Συγγραφέας ή πηγή (στο τέλος του κειμένου, δεξιά &amp; με μικρότερη γραμματοσειρά)">Πηγή / Συγγραφέας</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="[i]" data-wrap-end="[/i]" title="Πλάγια γραφή (επιλέξτε κείμενο ή πατήστε για εισαγωγή)"><em>I</em>&nbsp;Πλάγια</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="[small]" data-wrap-end="[/small]" title="Μικρότερη γραμματοσειρά">Μικρό</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="[center]" data-wrap-end="[/center]" title="Κεντραρισμένη στοίχιση (π.χ. τίτλος κειμένου)">Κέντρο</button>
+          <button type="button" class="tool-btn tool-wrap-btn" data-wrap-start="[right]" data-wrap-end="[/right]" title="Δεξιά στοίχιση">Δεξιά</button>
         </div>
 
         <textarea
@@ -1812,8 +2096,17 @@
           • Εναλλακτικές λάθος απαντήσεις: χωρίστε με <code>||</code> (π.χ. <code>$20$ || $25$ || $18$</code>) για επιλογή διαφορετικής απάντησης ανά ομάδα.<br />
           • Εναλλακτικές ερωτήσεις (ίδια θέση): χωρίστε δύο εκδοχές ερώτησης με <code>---</code> (ή <code>[ή]</code>) σε ξεχωριστή γραμμή.<br />
           • Αντιστοίχιση: ζεύγη με <code>==</code> (π.χ. <code>$\frac{1}{2}$ == $0,5$</code>).<br />
+          • Σωστό / Λάθος (Σ / Λ): προσθέστε <code>[Σ]</code> ή <code>[Λ]</code> σε κάθε πρόταση (μόνη της ή σε ομάδα προτάσεων με προαιρετική εκφώνηση στην 1η γραμμή).<br />
           • Ανοιχτό πρόβλημα &amp; κενός χώρος: προσθέστε <code>[lines:4]</code> για γραμμές γραφής ή <code>[space:2]</code> για έξτρα κενές σειρές κάτω από οποιαδήποτε ερώτηση (ή αυτόνομα).<br />
           • Μορφοποίηση κειμένου: <code>**έντονα**</code> και <code>&lt;u&gt;υπογράμμιση&lt;/u&gt;</code> (ή <code>__υπογράμμιση__</code>).
+          <details class="syntax-help-more">
+            <summary>Περισσότερα: Κείμενο κατανόησης, πηγή &amp; στοίχιση</summary>
+            <div class="syntax-help-more-body">
+              • Κείμενο κατανόησης (πολυπαράγραφο, χωρίς αρίθμηση): περικλείστε με <code>[text]...[/text]</code>, ή <code>[text:box]...[/text]</code> (με πλαίσιο), ή <code>[text:box,lines]...[/text]</code> (πλαίσιο + αρίθμηση γραμμών).<br />
+              • Συγγραφέας / Πηγή (δεξιά, πλάγια &amp; μικρότερα): <code>[source: Ονοματεπώνυμο, Έργο]</code>.<br />
+              • Πρόσθετη μορφοποίηση: <code>[i]πλάγια[/i]</code>, <code>[small]μικρό κείμενο[/small]</code>, <code>[center]κέντρο[/center]</code>, <code>[right]δεξιά[/right]</code>.
+            </div>
+          </details>
         </div>
       </div>
 
@@ -1956,7 +2249,7 @@
       // =========================================================================
       // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - Αλλάξτε χειροκίνητα την τιμή της σταθεράς παρακάτω
       // =========================================================================
-      const APP_VERSION = '1.5.0';
+      const APP_VERSION = '1.7.0';
 
       const GREEK_LETTERS = ['α', 'β', 'γ', 'δ', 'ε', 'στ', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν'];
       const GROUP_NAMES = ['Α', 'Β', 'Γ', 'Δ'];
@@ -1992,13 +2285,22 @@
         '$\\frac{2}{5}$ == $0,4$',
         '$\\frac{1}{8}$ == $0,125$',
         '',
-        '=== Άσκηση 3: Πρόβλημα ===',
+        '=== Άσκηση 3: Σωστό ή Λάθος ===',
+        '',
+        'Να χαρακτηρίσετε τις παρακάτω προτάσεις με Σ (Σωστό) ή Λ (Λάθος):',
+        'Το κλάσμα $\\frac{6}{8}$ είναι ισοδύναμο με το $\\frac{3}{4}$. [Σ]',
+        'Κάθε γνήσιο κλάσμα είναι μεγαλύτερο από $1$. [Λ]',
+        'Το κλάσμα $\\frac{1}{4}$ ισούται με τον δεκαδικό $0,25$. [Σ]',
+        'Η δύναμη $2^3$ ισούται με $6$. [Λ]',
+        '',
+        '=== Άσκηση 4: Πρόβλημα ===',
         '',
         'Ένας ποδηλάτης διάνυσε τα $\\frac{3}{5}$ μιας διαδρομής μήκους $45\\text{ χλμ.}$ το πρωί και το $\\frac{1}{3}$ της υπόλοιπης διαδρομής το απόγευμα. Πόσα χιλιόμετρα του έμειναν ακόμα για να φτάσει στον προορισμό του;',
         '[lines:4]'
       ].join('\n');
 
       const AUTOSAVE_STORAGE_KEY = 'primary_math_test_autosave_v1';
+      const TEXT_TOOLS_STORAGE_KEY = 'primary_math_test_text_tools_v1';
       const AUTOSAVE_DEBOUNCE_MS = 1800;
       const DEFAULT_QUESTION_GAP = 8;
       const MIN_QUESTION_GAP = 4;
@@ -2068,6 +2370,8 @@
         twoColOptionsCheckbox: document.getElementById('twoColOptionsCheckbox'),
         autosaveStatus: document.getElementById('autosaveStatus'),
         questionsInput: document.getElementById('questionsInput'),
+        toggleTextToolsBtn: document.getElementById('toggleTextToolsBtn'),
+        textToolsDrawer: document.getElementById('textToolsDrawer'),
         managerContainer: document.getElementById('managerContainer'),
         managerSummary: document.getElementById('managerSummary'),
         previewPagesWrapper: document.getElementById('previewPagesWrapper'),
@@ -2133,9 +2437,10 @@
         });
       }
 
-      // Safely format bold (**...**), underline (<u>...</u> or __...__), inline [space:N], and full-size fractions in math
-      function formatRichMathText(rawStr) {
+      // Safely format bold (**...**), underline (<u>...</u> or __...__), italics ([i]/<i>), small ([small]), alignment ([center]/[right]/[source:]), inline [space:N], and full-size fractions in math
+      function formatRichMathText(rawStr, options) {
         const input = String(rawStr || '');
+        const preserveLineBreaks = Boolean(options && options.preserveLineBreaks);
         const mathTokens = [];
         const mathRegex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$(?:\\.|[^$\\\n])+\$)/g;
 
@@ -2149,15 +2454,28 @@
         // 2. Escape HTML on plain text outside math blocks
         let formatted = escapeHtml(withPlaceholders);
 
-        // 3. Apply bold (**text**), underline (<u>text</u> or __text__), and inline [space:N]
+        // 3. Apply inline text formatting, alignment/source tags, and inline [space:N]
         formatted = formatted
           .replace(/&lt;u&gt;([\s\S]+?)&lt;\/u&gt;/gi, '<u>$1</u>')
+          .replace(/&lt;i&gt;([\s\S]+?)&lt;\/i&gt;/gi, '<em>$1</em>')
+          .replace(/\[i\]([\s\S]+?)\[\/i\]/gi, '<em>$1</em>')
           .replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>')
           .replace(/(^|[^_])__([^\s_](?:[^_\n]*?[^\s_])?)__(?=[^_]|$)/g, '$1<u>$2</u>')
+          .replace(/\[(?:small|μικρ[όο])\]([\s\S]+?)\[\/(?:small|μικρ[όο])\]/gi, '<span class="fmt-small">$1</span>')
+          .replace(/\[(?:source|πηγ[ήη]|author):\s*([^\n\]]+?)\s*\]/gi, '<span class="fmt-source">$1</span>')
+          .replace(/\[(?:right|δεξι[άα])\]([\s\S]+?)\[\/(?:right|δεξι[άα])\]/gi, '<span class="fmt-right">$1</span>')
+          .replace(/\[(?:center|κ[έε]ντρο)\]([\s\S]+?)\[\/(?:center|κ[έε]ντρο)\]/gi, '<span class="fmt-center">$1</span>')
           .replace(/\[(?:space|blank|κεν[όο]):\s*(\d+)\s*\]/gi, function (_, nStr) {
             const count = Math.min(24, Math.max(1, parseInt(nStr, 10) || 1));
             return `<span class="inline-space-break" style="height: calc(${count} * 8.5mm);"></span>`;
           });
+
+        if (preserveLineBreaks) {
+          formatted = formatted
+            .replace(/\n/g, '<br />')
+            .replace(/<br\s*\/>\s*(?=<span class="fmt-(?:source|right|center)">)/g, '')
+            .replace(/(<span class="fmt-(?:source|right|center)">[\s\S]*?<\/span>)<br\s*\/>/g, '$1');
+        }
 
         // 4. Restore math blocks
         return formatted.replace(/\u0001MATH_(\d+)\u0001/g, function (_, idx) {
@@ -2299,12 +2617,88 @@
           };
         }
 
-        // Open-Ended Question (single remaining line)
-        if (workLines.length === 1) {
+        // True/False Exercise ([Σ] or [Λ] marker at start or end of statement lines)
+        function extractTfTag(text) {
+          const s = String(text || '').trim();
+          const trail = s.match(/^([\s\S]+?)\s*\[(Σ|σ|Λ|λ)\]\s*$/);
+          if (trail) {
+            const ans = trail[2].toUpperCase() === 'Σ' ? 'Σ' : 'Λ';
+            return { text: trail[1].trim(), answer: ans };
+          }
+          const lead = s.match(/^\[(Σ|σ|Λ|λ)\]\s+([\s\S]+)$/);
+          if (lead) {
+            const ans = lead[1].toUpperCase() === 'Σ' ? 'Σ' : 'Λ';
+            return { text: lead[2].trim(), answer: ans };
+          }
+          return null;
+        }
+
+        function parseTfStatementLine(line) {
+          const rawParts = splitVariantsOutsideMath(line);
+          const parsedParts = rawParts.map((part) => extractTfTag(part));
+          const firstTagged = parsedParts.find((p) => p !== null);
+          if (!firstTagged) return null;
+
+          const variants = rawParts.map((part, idx) => {
+            const tagged = parsedParts[idx];
+            if (tagged) return tagged;
+            return { text: part.trim(), answer: firstTagged.answer };
+          });
+
+          return {
+            text: variants[0].text,
+            answer: variants[0].answer,
+            variants: variants
+          };
+        }
+
+        const tfLineResults = workLines.map((line) => parseTfStatementLine(line));
+        const allLinesTf = workLines.length >= 1 && tfLineResults.every((r) => r !== null);
+        const promptPlusTfLines =
+          workLines.length >= 2 &&
+          tfLineResults[0] === null &&
+          tfLineResults.slice(1).every((r) => r !== null);
+
+        if (allLinesTf || promptPlusTfLines) {
+          const tfPrompt = promptPlusTfLines ? workLines[0] : '';
+          const stmtResults = promptPlusTfLines ? tfLineResults.slice(1) : tfLineResults;
+          const statements = stmtResults.map((res, sIdx) => ({
+            stmtId: 'tf_' + sIdx,
+            text: res.text,
+            answer: res.answer,
+            variants: res.variants
+          }));
+          const tfKeySeed =
+            'tf:' +
+            normalizeKey(tfPrompt) +
+            ':' +
+            statements.map((st) => normalizeKey(st.text)).join('|');
+
+          return {
+            id: 'q_' + secId + '_' + qIdx,
+            type: 'tf',
+            prompt: tfPrompt,
+            statements: statements,
+            extraSpaceLines: extraSpaceLines,
+            locked: false,
+            lockMode: 'none',
+            lockMin: null,
+            lockMax: null,
+            lockStatementsOrder: false,
+            matchKey: tfKeySeed
+          };
+        }
+
+        // Open-Ended Question (single line, or line + [source: ...] attribution)
+        if (
+          workLines.length === 1 ||
+          (workLines.length === 2 && /^\[(?:source|πηγ[ήη]|author):\s*[^\]]+\]$/i.test(workLines[1]))
+        ) {
+          const combinedPrompt = workLines.length === 2 ? workLines[0] + '\n' + workLines[1] : workLines[0];
           return {
             id: 'q_' + secId + '_' + qIdx,
             type: 'open',
-            prompt: workLines[0],
+            prompt: combinedPrompt,
             writingLines: attachedWritingLines,
             extraSpaceLines: extraSpaceLines,
             locked: false,
@@ -2349,15 +2743,103 @@
         };
       }
 
+      function isNonNumberedItem(item) {
+        return Boolean(item && (item.type === 'spacer' || item.type === 'passage'));
+      }
+
+      function buildPassageBlockObject(lines, optsRaw, start, end, secId, qIdx) {
+        const optTokens = String(optsRaw || '')
+          .toLowerCase()
+          .split(/[\s,;]+/)
+          .filter(Boolean);
+        const hasBox = optTokens.some((t) => ['box', 'πλαίσιο', 'frame', 'card'].includes(t));
+        const showLineNumbers = optTokens.some((t) => ['lines', 'numbers', 'linenumbers', 'αρίθμηση', 'γραμμές'].includes(t));
+
+        const work = lines.slice();
+        const spaceLineRegex = /^\[(?:space|blank|κεν[όο]):\s*(\d+)\s*\]$/i;
+        let extraSpaceLines = 0;
+        while (work.length > 0 && spaceLineRegex.test(work[work.length - 1].trim())) {
+          const m = work[work.length - 1].trim().match(spaceLineRegex);
+          extraSpaceLines += Math.min(24, Math.max(1, parseInt(m[1], 10) || 1));
+          work.pop();
+        }
+        extraSpaceLines = Math.min(24, extraSpaceLines);
+
+        // Group into paragraphs separated by empty lines (auto-isolating standalone source/heading/aligned lines)
+        const standaloneBlockRegex = /^(?:\[(?:source|πηγ[ήη]|author):\s*[^\]]+\]|\[(?:center|κ[έε]ντρο)\][\s\S]+\[\/(?:center|κ[έε]ντρο)\]|\[(?:right|δεξι[άα])\][\s\S]+\[\/(?:right|δεξι[άα])\])$/i;
+        const paragraphs = [];
+        let curPara = [];
+        for (let i = 0; i < work.length; i++) {
+          const t = work[i].trim();
+          if (t.length === 0) {
+            if (curPara.length > 0) {
+              paragraphs.push(curPara.join('\n'));
+              curPara = [];
+            }
+          } else if (standaloneBlockRegex.test(t)) {
+            if (curPara.length > 0) {
+              paragraphs.push(curPara.join('\n'));
+              curPara = [];
+            }
+            paragraphs.push(t);
+          } else {
+            curPara.push(t);
+          }
+        }
+        if (curPara.length > 0) {
+          paragraphs.push(curPara.join('\n'));
+        }
+
+        const firstPreview = paragraphs[0] ? normalizeKey(paragraphs[0]).slice(0, 48) : '';
+        return {
+          id: 'q_' + secId + '_' + qIdx,
+          type: 'passage',
+          paragraphs: paragraphs,
+          hasBox: hasBox,
+          showLineNumbers: showLineNumbers,
+          extraSpaceLines: extraSpaceLines,
+          locked: true,
+          lockMode: 'exact',
+          lockMin: null,
+          lockMax: null,
+          sourceStart: start,
+          sourceEnd: end,
+          matchKey: 'passage:' + secId + ':' + qIdx + ':' + firstPreview
+        };
+      }
+
       // Parse raw textarea content into structured sections & questions while preserving lock states
       function parseRawText(rawText, previousSections) {
         const normalized = String(rawText || '').replace(/\r\n/g, '\n');
 
-        // Pre-split === ... === headers and --- / [ή] separators while tracking source offsets
+        // Pre-split === ... === headers, --- / [ή] separators, and [text...]...[/text] reading blocks while tracking source offsets
         const rawLines = normalized.split('\n');
         const expandedRecords = [];
         const altSepRegex = /^(-{3,}|\[ή\])$/i;
+        const textOpenRegex = /^\[(?:text|κείμενο)(?::([^\]]*))?\]$/i;
+        const textCloseRegex = /^\[\/(?:text|κείμενο)\]$/i;
         let charPos = 0;
+
+        let inTextBlock = false;
+        let textBlockData = null;
+
+        function flushTextBlockRecord() {
+          if (!textBlockData) return;
+          if (expandedRecords.length > 0 && expandedRecords[expandedRecords.length - 1].text.trim() !== '') {
+            expandedRecords.push({ text: '', start: -1, end: -1 });
+          }
+          expandedRecords.push({
+            isPassage: true,
+            optsRaw: textBlockData.optsRaw,
+            lines: textBlockData.lines,
+            start: textBlockData.start,
+            end: textBlockData.end,
+            text: '[passage]'
+          });
+          expandedRecords.push({ text: '', start: -1, end: -1 });
+          inTextBlock = false;
+          textBlockData = null;
+        }
 
         for (let i = 0; i < rawLines.length; i++) {
           const lineText = rawLines[i];
@@ -2366,6 +2848,36 @@
           charPos = lineEnd + 1;
 
           const trimmed = lineText.trim();
+
+          if (inTextBlock) {
+            if (textCloseRegex.test(trimmed)) {
+              textBlockData.end = lineEnd;
+              flushTextBlockRecord();
+              continue;
+            }
+            // Gracefully close unclosed [text] if user starts a new === section ===
+            if (trimmed.startsWith('===')) {
+              flushTextBlockRecord();
+              // fall through to normal section handling below
+            } else {
+              textBlockData.lines.push(lineText);
+              textBlockData.end = lineEnd;
+              continue;
+            }
+          }
+
+          const openMatch = trimmed.match(textOpenRegex);
+          if (openMatch) {
+            inTextBlock = true;
+            textBlockData = {
+              optsRaw: openMatch[1] || '',
+              lines: [],
+              start: lineStart,
+              end: lineEnd
+            };
+            continue;
+          }
+
           if (trimmed.startsWith('===') || altSepRegex.test(trimmed)) {
             if (expandedRecords.length > 0 && expandedRecords[expandedRecords.length - 1].text.trim() !== '') {
               expandedRecords.push({ text: '', start: -1, end: -1 });
@@ -2378,11 +2890,28 @@
             expandedRecords.push({ text: lineText, start: lineStart, end: lineEnd });
           }
         }
+        if (inTextBlock) {
+          flushTextBlockRecord();
+        }
 
         const blocks = [];
         let activeBlock = null;
         for (let i = 0; i < expandedRecords.length; i++) {
           const rec = expandedRecords[i];
+          if (rec.isPassage) {
+            if (activeBlock) {
+              blocks.push(activeBlock);
+              activeBlock = null;
+            }
+            blocks.push({
+              isPassage: true,
+              optsRaw: rec.optsRaw,
+              lines: rec.lines,
+              start: rec.start,
+              end: rec.end
+            });
+            continue;
+          }
           const trimmed = rec.text.trim();
           if (trimmed.length === 0) {
             if (activeBlock) {
@@ -2426,6 +2955,22 @@
 
         for (let bIdx = 0; bIdx < blocks.length; bIdx++) {
           const block = blocks[bIdx];
+
+          if (block.isPassage) {
+            mergeNextWithPrev = false;
+            const sec = ensureSection();
+            const passageObj = buildPassageBlockObject(
+              block.lines,
+              block.optsRaw,
+              block.start,
+              block.end,
+              sec.id,
+              sec.questions.length
+            );
+            sec.questions.push(passageObj);
+            continue;
+          }
+
           const lines = block.lines;
           if (lines.length === 0) continue;
 
@@ -2558,6 +3103,9 @@
                       if (vq.type === 'matching' && typeof matchedV.lockColA === 'boolean') {
                         vq.lockColA = matchedV.lockColA;
                       }
+                      if (vq.type === 'tf' && typeof matchedV.lockStatementsOrder === 'boolean') {
+                        vq.lockStatementsOrder = matchedV.lockStatementsOrder;
+                      }
                     }
                   });
                 } else {
@@ -2572,6 +3120,9 @@
                     if (q.type === 'matching' && typeof sourceForFlags.lockColA === 'boolean') {
                       q.lockColA = sourceForFlags.lockColA;
                     }
+                    if (q.type === 'tf' && typeof sourceForFlags.lockStatementsOrder === 'boolean') {
+                      q.lockStatementsOrder = sourceForFlags.lockStatementsOrder;
+                    }
                   }
                 }
               }
@@ -2584,7 +3135,7 @@
 
       // Normalize question lock configuration ('none' | 'exact' | 'range')
       function getQuestionLockConfig(q, numberedCount, currentPosNum) {
-        if (!q || q.type === 'spacer') {
+        if (!q || isNonNumberedItem(q)) {
           return { mode: 'exact', pos: currentPosNum };
         }
         const rawMode =
@@ -2615,7 +3166,7 @@
         const numberedSlotIndices = [];
 
         questions.forEach((item, idx) => {
-          if (item.type !== 'spacer') {
+          if (!isNonNumberedItem(item)) {
             numberedItems.push(item);
             numberedSlotIndices.push(idx);
           }
@@ -2869,19 +3420,37 @@
         const questionVariantAssignments = new Map();
 
         function registerOptionVariants(qItem) {
-          if (!qItem || qItem.type !== 'mc') return;
-          qItem.options.forEach((opt) => {
-            const variants = Array.isArray(opt.variants) && opt.variants.length > 0 ? opt.variants : [opt.text];
-            if (variants.length === 1) {
-              variantAssignments.set(opt, new Array(count).fill(variants[0]));
-            } else {
-              let pool = [];
-              while (pool.length < count) {
-                pool = pool.concat(fisherYatesShuffle(variants, rng));
+          if (!qItem) return;
+          if (qItem.type === 'mc') {
+            qItem.options.forEach((opt) => {
+              const variants = Array.isArray(opt.variants) && opt.variants.length > 0 ? opt.variants : [opt.text];
+              if (variants.length === 1) {
+                variantAssignments.set(opt, new Array(count).fill(variants[0]));
+              } else {
+                let pool = [];
+                while (pool.length < count) {
+                  pool = pool.concat(fisherYatesShuffle(variants, rng));
+                }
+                variantAssignments.set(opt, pool.slice(0, count));
               }
-              variantAssignments.set(opt, pool.slice(0, count));
-            }
-          });
+            });
+          } else if (qItem.type === 'tf') {
+            qItem.statements.forEach((stmt) => {
+              const variants =
+                Array.isArray(stmt.variants) && stmt.variants.length > 0
+                  ? stmt.variants
+                  : [{ text: stmt.text, answer: stmt.answer }];
+              if (variants.length === 1) {
+                variantAssignments.set(stmt, new Array(count).fill(variants[0]));
+              } else {
+                let pool = [];
+                while (pool.length < count) {
+                  pool = pool.concat(fisherYatesShuffle(variants, rng));
+                }
+                variantAssignments.set(stmt, pool.slice(0, count));
+              }
+            });
+          }
         }
 
         state.sections.forEach((sec) => {
@@ -2914,6 +3483,15 @@
                 return {
                   type: 'spacer',
                   spaceLines: rawQ.spaceLines
+                };
+              }
+              if (rawQ.type === 'passage') {
+                return {
+                  type: 'passage',
+                  paragraphs: rawQ.paragraphs,
+                  hasBox: rawQ.hasBox,
+                  showLineNumbers: rawQ.showLineNumbers,
+                  extraSpaceLines: rawQ.extraSpaceLines || 0
                 };
               }
 
@@ -2987,6 +3565,32 @@
                 };
               }
 
+              if (q.type === 'tf') {
+                const orderedStmts =
+                  q.lockStatementsOrder || q.statements.length <= 1
+                    ? q.statements.slice()
+                    : fisherYatesShuffle(q.statements, rng);
+
+                const renderedStmts = orderedStmts.map((stmt, idx) => {
+                  const assignedList = variantAssignments.get(stmt);
+                  const chosen = assignedList ? assignedList[v] : { text: stmt.text, answer: stmt.answer };
+                  return {
+                    letter: GREEK_LETTERS[idx] || String(idx + 1),
+                    text: chosen.text,
+                    answer: chosen.answer
+                  };
+                });
+
+                return {
+                  type: 'tf',
+                  displayNum: displayNum,
+                  prompt: q.prompt,
+                  isSingle: renderedStmts.length === 1 && !q.prompt,
+                  statements: renderedStmts,
+                  extraSpaceLines: q.extraSpaceLines || 0
+                };
+              }
+
               return {
                 type: 'open',
                 displayNum: displayNum,
@@ -3021,7 +3625,17 @@
             : '';
         if (qItem.type === 'mc') return 'Πολλαπλής επιλογής' + extraNote;
         if (qItem.type === 'matching') return `Αντιστοίχιση (${qItem.pairs.length} ζεύγη)` + extraNote;
+        if (qItem.type === 'tf') {
+          const isSingle = qItem.statements.length === 1 && !qItem.prompt;
+          return (isSingle ? 'Σωστό / Λάθος' : `Σωστό / Λάθος (${qItem.statements.length} προτάσεις)`) + extraNote;
+        }
         if (qItem.type === 'spacer') return `Κενός χώρος (${qItem.spaceLines} ${qItem.spaceLines === 1 ? 'σειρά' : 'σειρές'})`;
+        if (qItem.type === 'passage') {
+          const flags = [];
+          if (qItem.hasBox) flags.push('πλαίσιο');
+          if (qItem.showLineNumbers) flags.push('αρίθμηση γραμμών');
+          return 'Κείμενο κατανόησης' + (flags.length > 0 ? ` (${flags.join(', ')})` : '') + extraNote;
+        }
         return (qItem.writingLines > 0 ? `Ανοιχτή ερώτηση (${qItem.writingLines} γραμμές)` : 'Ανοιχτή ερώτηση') + extraNote;
       }
 
@@ -3034,6 +3648,27 @@
           out += `<div class="mgr-subitems">`;
           qItem.pairs.forEach((p, pIdx) => {
             out += `<div class="math-render">${pIdx + 1}. ${formatRichMathText(p.left)} &nbsp;↔&nbsp; ${formatRichMathText(p.right)}</div>`;
+          });
+          out += `</div>`;
+        } else if (qItem.type === 'tf') {
+          if (qItem.prompt) {
+            out += `<div class="mgr-prompt math-render">${formatRichMathText(qItem.prompt)}</div>`;
+          }
+          out += `<div class="mgr-subitems">`;
+          const showLetters = qItem.statements.length > 1 || Boolean(qItem.prompt);
+          qItem.statements.forEach((st, stIdx) => {
+            const prefix = showLetters ? `${GREEK_LETTERS[stIdx] || stIdx + 1}) ` : '';
+            const variants =
+              Array.isArray(st.variants) && st.variants.length > 0
+                ? st.variants
+                : [{ text: st.text, answer: st.answer }];
+            const stmtHtml = variants
+              .map((v) => {
+                const badgeCls = v.answer === 'Σ' ? 'is-true' : 'is-false';
+                return `${formatRichMathText(v.text)}<span class="mgr-tf-badge ${badgeCls}">${escapeHtml(v.answer)}</span>`;
+              })
+              .join('<span class="mgr-alt-sep">||</span>');
+            out += `<div class="math-render">${prefix}${stmtHtml}</div>`;
           });
           out += `</div>`;
         } else {
@@ -3065,6 +3700,10 @@
           const checkedAttr = qItem.lockColA ? 'checked' : '';
           return `<label class="checkbox-row"><input type="checkbox" data-action="toggle-col-a-lock" data-sidx="${sIdx}" data-qidx="${qIdx}"${vAttr} ${checkedAttr} /><span>Κλείδωμα σειράς Στήλης Α</span></label>`;
         }
+        if (qItem.type === 'tf' && qItem.statements.length > 1) {
+          const checkedAttr = qItem.lockStatementsOrder ? 'checked' : '';
+          return `<label class="checkbox-row"><input type="checkbox" data-action="toggle-tf-order-lock" data-sidx="${sIdx}" data-qidx="${qIdx}"${vAttr} ${checkedAttr} /><span>Κλείδωμα σειράς προτάσεων</span></label>`;
+        }
         return '';
       }
 
@@ -3073,12 +3712,16 @@
         const container = els.managerContainer;
         const totalSections = state.sections.filter((s) => !s.isImplicit).length;
         const totalQuestions = state.sections.reduce(
-          (acc, s) => acc + s.questions.filter((q) => q.type !== 'spacer').length,
+          (acc, s) => acc + s.questions.filter((q) => !isNonNumberedItem(q)).length,
           0
         );
-        els.managerSummary.textContent = `${totalSections} ενότητες · ${totalQuestions} ερωτήσεις/ασκήσεις`;
+        const totalPassages = state.sections.reduce(
+          (acc, s) => acc + s.questions.filter((q) => q.type === 'passage').length,
+          0
+        );
+        els.managerSummary.textContent = `${totalSections} ενότητες · ${totalQuestions} ερωτήσεις/ασκήσεις${totalPassages > 0 ? ` · ${totalPassages} κείμενο/α` : ''}`;
 
-        if (state.sections.length === 0 || (totalQuestions === 0 && totalSections === 0)) {
+        if (state.sections.length === 0 || (totalQuestions === 0 && totalSections === 0 && totalPassages === 0)) {
           container.innerHTML = '<div class="empty-state">Δεν βρέθηκαν ερωτήσεις. Γράψτε ή επικολλήστε ερωτήσεις στο πλαίσιο κειμένου παραπάνω ή πατήστε «Φόρτωση Δείγματος».</div>';
           return;
         }
@@ -3124,7 +3767,7 @@
           const secLockLabel = sec.locked
             ? `Κλειδωμένη ενότητα (#${sIdx + 1})`
             : 'Ελεύθερη σειρά ενότητας';
-          const numberedCount = sec.questions.filter((item) => item.type !== 'spacer').length;
+          const numberedCount = sec.questions.filter((item) => !isNonNumberedItem(item)).length;
           const conflictInfo = analyzeSectionLockConstraints(sec.questions);
 
           html += `<div class="mgr-section" data-section-index="${sIdx}">`;
@@ -3149,6 +3792,19 @@
                 html += `<div class="mgr-card-top" style="margin-bottom:0;">`;
                 html += `<span class="mgr-meta">${escapeHtml(getQuestionTypeLabel(q))} · [space:${q.spaceLines}]</span>`;
                 html += `</div>`;
+                html += `</div>`;
+                return;
+              }
+              if (q.type === 'passage') {
+                const snippetRaw = q.paragraphs.join(' ').replace(/\s+/g, ' ').trim();
+                const snippetText = snippetRaw.length > 110 ? snippetRaw.slice(0, 110) + '…' : snippetRaw;
+                html += `<div class="mgr-card" style="background:#f8fafc;">`;
+                html += `<div class="mgr-card-top">`;
+                html += `<span class="mgr-meta">${escapeHtml(getQuestionTypeLabel(q))} · Σταθερή θέση</span>`;
+                html += `</div>`;
+                if (snippetText) {
+                  html += `<div class="mgr-prompt math-render">${formatRichMathText(snippetText)}</div>`;
+                }
                 html += `</div>`;
                 return;
               }
@@ -3250,6 +3906,18 @@
           };
         }
 
+        if (q.type === 'passage') {
+          return {
+            type: 'passage',
+            paragraphs: q.paragraphs,
+            hasBox: q.hasBox,
+            showLineNumbers: q.showLineNumbers,
+            extraSpaceLines: q.extraSpaceLines || 0,
+            sourceStart: q.sourceStart,
+            sourceEnd: q.sourceEnd
+          };
+        }
+
         if (q.type === 'variant_group') {
           const activeIdx = getActiveVariantIndex(q);
           const activeVariant = q.variants[activeIdx] || q.variants[0];
@@ -3319,6 +3987,41 @@
           };
         }
 
+        if (q.type === 'tf') {
+          const renderedStmts = q.statements.map((stmt, idx) => {
+            const variants =
+              Array.isArray(stmt.variants) && stmt.variants.length > 0
+                ? stmt.variants
+                : [{ text: stmt.text, answer: stmt.answer }];
+            const stmtVarKey = q.matchKey + '::tf::' + idx;
+            const rawVarIdx = state.activeOptVariantByKey[stmtVarKey];
+            const activeVarIdx =
+              typeof rawVarIdx === 'number' && !Number.isNaN(rawVarIdx)
+                ? Math.max(0, Math.min(variants.length - 1, rawVarIdx))
+                : 0;
+            const active = variants[activeVarIdx];
+            return {
+              letter: GREEK_LETTERS[idx] || String(idx + 1),
+              text: active.text,
+              answer: active.answer,
+              variants: variants,
+              optVariantKey: stmtVarKey,
+              activeOptIdx: activeVarIdx
+            };
+          });
+
+          return {
+            type: 'tf',
+            displayNum: displayNum,
+            prompt: q.prompt,
+            sourceStart: q.sourceStart,
+            sourceEnd: q.sourceEnd,
+            isSingle: renderedStmts.length === 1 && !q.prompt,
+            statements: renderedStmts,
+            extraSpaceLines: q.extraSpaceLines || 0
+          };
+        }
+
         return {
           type: 'open',
           displayNum: displayNum,
@@ -3335,7 +4038,7 @@
         const originalSections = state.sections.map((sec) => {
           let questionCounter = 0;
           const renderedQuestions = sec.questions.map((q) => {
-            if (q.type === 'spacer') {
+            if (isNonNumberedItem(q)) {
               return buildOriginalQuestionItem(q, 0);
             }
             questionCounter += 1;
@@ -3430,6 +4133,28 @@
           return html;
         }
 
+        if (q.type === 'passage') {
+          const boxCls = q.hasBox ? ' has-box' : '';
+          const numCls = q.showLineNumbers ? ' has-line-numbers' : '';
+          html += `<div class="passage-block${boxCls}${numCls}"${srcAttrs}>`;
+          html += `<div class="passage-body">`;
+          (q.paragraphs || []).forEach((para) => {
+            const pTrim = para.trim();
+            if (/^\[(?:source|πηγ[ήη]|author):\s*[^\]]+\]$/i.test(pTrim)) {
+              const inner = pTrim.replace(/^\[(?:source|πηγ[ήη]|author):\s*([^\]]+)\]$/i, '$1').trim();
+              html += `<div class="passage-source math-render">${formatRichMathText(inner, { preserveLineBreaks: true })}</div>`;
+            } else if (/^\[(?:center|κ[έε]ντρο)\][\s\S]+\[\/(?:center|κ[έε]ντρο)\]$/i.test(pTrim)) {
+              html += `<div class="passage-heading math-render">${formatRichMathText(pTrim, { preserveLineBreaks: true })}</div>`;
+            } else {
+              html += `<p class="passage-p math-render">${formatRichMathText(pTrim, { preserveLineBreaks: true })}</p>`;
+            }
+          });
+          html += `</div>`;
+          html += renderExtraSpaceHtml(q.extraSpaceLines);
+          html += `</div>`;
+          return html;
+        }
+
         const variantMeta = q.variantGroupMeta || null;
         const variantSlotCls = variantMeta ? ' is-variant-slot' : '';
         const switcherHtml = renderVariantSwitcherHtml(variantMeta);
@@ -3490,28 +4215,32 @@
             html += `</div>`;
           }
           html += `<div class="matching-columns">`;
-
-          // Column A
-          html += `<div>`;
           html += `<div class="matching-col-header">Στήλη Α</div>`;
-          q.colA.forEach((item) => {
-            html += `<div class="matching-row-item">`;
-            html += `<span class="matching-key-label">${item.num}.</span>`;
-            html += `<span class="math-render">${formatRichMathText(item.text)}</span>`;
-            html += `</div>`;
-          });
-          html += `</div>`;
-
-          // Column B
-          html += `<div>`;
           html += `<div class="matching-col-header">Στήλη Β</div>`;
-          q.colB.forEach((item) => {
-            html += `<div class="matching-row-item">`;
-            html += `<span class="matching-key-label">${escapeHtml(item.letter)}.</span>`;
-            html += `<span class="math-render">${formatRichMathText(item.text)}</span>`;
-            html += `</div>`;
-          });
-          html += `</div>`;
+
+          const rowCount = Math.max(q.colA.length, q.colB.length);
+          for (let r = 0; r < rowCount; r++) {
+            const itemA = q.colA[r];
+            const itemB = q.colB[r];
+
+            if (itemA) {
+              html += `<div class="matching-row-item">`;
+              html += `<span class="matching-key-label">${itemA.num}.</span>`;
+              html += `<span class="math-render">${formatRichMathText(itemA.text)}</span>`;
+              html += `</div>`;
+            } else {
+              html += `<div class="matching-row-item"></div>`;
+            }
+
+            if (itemB) {
+              html += `<div class="matching-row-item">`;
+              html += `<span class="matching-key-label">${escapeHtml(itemB.letter)}.</span>`;
+              html += `<span class="math-render">${formatRichMathText(itemB.text)}</span>`;
+              html += `</div>`;
+            } else {
+              html += `<div class="matching-row-item"></div>`;
+            }
+          }
 
           html += `</div>`;
 
@@ -3528,6 +4257,54 @@
           html += renderExtraSpaceHtml(q.extraSpaceLines);
 
           html += `</div>`;
+        } else if (q.type === 'tf') {
+          function renderTfChoicesHtml(ans) {
+            if (highlightCorrect) {
+              return `<span class="tf-answer-box is-correct-preview" aria-label="Σωστή απάντηση: ${escapeHtml(ans)}">${escapeHtml(ans)}</span>`;
+            }
+            return `<span class="tf-answer-box" aria-label="Πλαίσιο απάντησης Σ ή Λ"></span>`;
+          }
+
+          function renderTfCycleBtnHtml(stmt) {
+            if (!highlightCorrect || !Array.isArray(stmt.variants) || stmt.variants.length <= 1) return '';
+            const altsTitle = stmt.variants.map((v, i) => `${i + 1}) ${v.text} [${v.answer}]`).join(' | ');
+            const nextIdx = ((stmt.activeOptIdx || 0) + 1) % stmt.variants.length;
+            return `<button type="button" class="mc-alt-cycle-btn no-print" data-opt-variant-key="${escapeHtml(stmt.optVariantKey || '')}" data-opt-variant-next="${nextIdx}" title="Εναλλαγή πρότασης (${escapeHtml(altsTitle)})">|| ${(stmt.activeOptIdx || 0) + 1}/${stmt.variants.length}</button>`;
+          }
+
+          if (q.isSingle && q.statements[0]) {
+            const st = q.statements[0];
+            html += `<div class="test-question${variantSlotCls}"${srcAttrs}>`;
+            html += switcherHtml;
+            html += `<div class="question-line tf-single-line">`;
+            html += `<span class="tf-row-main">`;
+            html += `<span class="question-num">${q.displayNum}.</span>`;
+            html += `<span class="question-text math-render">${formatRichMathText(st.text)}${renderTfCycleBtnHtml(st)}</span>`;
+            html += `</span>`;
+            html += renderTfChoicesHtml(st.answer);
+            html += `</div>`;
+            html += renderExtraSpaceHtml(q.extraSpaceLines);
+            html += `</div>`;
+          } else {
+            html += `<div class="tf-block${variantSlotCls}"${srcAttrs}>`;
+            html += switcherHtml;
+            if (q.prompt) {
+              html += `<div class="tf-prompt math-render">${formatRichMathText(q.prompt)}</div>`;
+            }
+            html += `<div class="tf-list">`;
+            q.statements.forEach((st) => {
+              html += `<div class="tf-row">`;
+              html += `<div class="tf-row-main">`;
+              html += `<span class="tf-letter">${escapeHtml(st.letter)})</span>`;
+              html += `<span class="tf-stmt-text math-render">${formatRichMathText(st.text)}${renderTfCycleBtnHtml(st)}</span>`;
+              html += `</div>`;
+              html += renderTfChoicesHtml(st.answer);
+              html += `</div>`;
+            });
+            html += `</div>`;
+            html += renderExtraSpaceHtml(q.extraSpaceLines);
+            html += `</div>`;
+          }
         } else {
           // Open-ended question
           html += `<div class="test-question${variantSlotCls}"${srcAttrs}>`;
@@ -3853,7 +4630,7 @@
             pagesHtml += `<div class="answer-key-items">`;
 
             sec.questions.forEach((q) => {
-              if (q.type === 'spacer') return;
+              if (isNonNumberedItem(q)) return;
               if (q.type === 'mc') {
                 if (q.correctOpts.length === 0) {
                   pagesHtml += `<div><strong>${q.displayNum}.</strong> <em>Δεν έχει οριστεί σωστή επιλογή (*)</em></div>`;
@@ -3868,6 +4645,15 @@
                   .map((p) => `${p.num}-${escapeHtml(p.letter)}`)
                   .join(', ');
                 pagesHtml += `<div><strong>Αντιστοίχιση:</strong> ${pairStr}</div>`;
+              } else if (q.type === 'tf') {
+                if (q.isSingle && q.statements[0]) {
+                  pagesHtml += `<div><strong>${q.displayNum}-${escapeHtml(q.statements[0].answer)}</strong></div>`;
+                } else {
+                  const tfStr = q.statements
+                    .map((st) => `${escapeHtml(st.letter)}-${escapeHtml(st.answer)}`)
+                    .join(', ');
+                  pagesHtml += `<div><strong>Σωστό / Λάθος (${q.displayNum}):</strong> ${tfStr}</div>`;
+                }
               } else {
                 pagesHtml += `<div><strong>${q.displayNum}.</strong> <em>Ανοιχτή ερώτηση / Πρόβλημα</em></div>`;
               }
@@ -3919,9 +4705,79 @@
         });
       }
 
+      function computePassageLineNumbers(sheet) {
+        if (typeof document.createRange !== 'function') return;
+        const blocks = Array.from(sheet.querySelectorAll('.passage-block.has-line-numbers'));
+        blocks.forEach((block) => {
+          block.querySelectorAll('.passage-line-num').forEach((n) => n.remove());
+          const paragraphs = Array.from(block.querySelectorAll('.passage-p'));
+          let lineCounter = 0;
+
+          paragraphs.forEach((p) => {
+            if (typeof p.getBoundingClientRect !== 'function') return;
+            const pRect = p.getBoundingClientRect();
+            const computedLh = parseFloat(window.getComputedStyle(p).lineHeight) || 18;
+            const tol = Math.max(4, computedLh * 0.45);
+            const lineTops = [];
+
+            function recordRect(r) {
+              if (!r || (r.width === 0 && r.height === 0)) return;
+              const mid = r.top + r.height * 0.5;
+              const relTop = r.top - pRect.top;
+              const existing = lineTops.find((lt) => Math.abs(lt.mid - mid) <= tol);
+              if (!existing) {
+                lineTops.push({ mid: mid, top: Math.max(0, relTop) });
+              }
+            }
+
+            const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null);
+            let node;
+            const range = document.createRange();
+            while ((node = walker.nextNode())) {
+              if (node.nodeType === 1) {
+                if (node.classList && node.classList.contains('katex')) {
+                  recordRect(node.getBoundingClientRect());
+                } else if (node.tagName === 'BR') {
+                  // <br> itself doesn't hold text; following text node will start next line
+                }
+                continue;
+              }
+              if (node.parentElement && node.parentElement.closest('.katex, .fmt-source, .fmt-right, .fmt-center')) continue;
+              const txt = node.nodeValue || '';
+              if (!txt.trim()) continue;
+              // Sample tokens (words/spaces) to find visual line wraps cleanly
+              const tokenRegex = /\S+|\s+/g;
+              let m;
+              while ((m = tokenRegex.exec(txt)) !== null) {
+                if (!m[0].trim()) continue;
+                range.setStart(node, m.index);
+                range.setEnd(node, m.index + m[0].length);
+                const rects = range.getClientRects();
+                for (let ri = 0; ri < rects.length; ri++) {
+                  recordRect(rects[ri]);
+                }
+              }
+            }
+
+            lineTops.sort((a, b) => a.mid - b.mid);
+            lineTops.forEach((lt) => {
+              lineCounter += 1;
+              if (lineCounter === 1 || lineCounter % 5 === 0) {
+                const badge = document.createElement('span');
+                badge.className = 'passage-line-num';
+                badge.textContent = String(lineCounter);
+                badge.style.top = `${lt.top}px`;
+                p.appendChild(badge);
+              }
+            });
+          });
+        });
+      }
+
       function paginateExamSheet(sheet) {
         const sheetBody = sheet.querySelector('.sheet-body');
         if (!sheetBody) return;
+        computePassageLineNumbers(sheet);
         const mmToPx = sheet.offsetWidth / 210;
         if (!mmToPx || mmToPx <= 0) return;
 
@@ -3996,25 +4852,137 @@
           const probe = unit.itemEl || unit.titleEl;
           const usedHeight = probe.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
 
-          if (usedHeight > maxBottomOffsetPx && currentPageHasItem) {
-            if (unit.itemEl && unit.itemEl.parentNode) unit.itemEl.parentNode.removeChild(unit.itemEl);
-            if (unit.titleEl && unit.titleEl.parentNode) unit.titleEl.parentNode.removeChild(unit.titleEl);
-            if (createdNewSec && currentSecEl && currentSecEl.parentNode) {
-              currentSecEl.parentNode.removeChild(currentSecEl);
+          if (usedHeight > maxBottomOffsetPx) {
+            const isPassage = unit.itemEl && unit.itemEl.classList.contains('passage-block');
+            if (isPassage) {
+              const passageEl = unit.itemEl;
+              const bodyEl = passageEl.querySelector(':scope > .passage-body');
+              const origNodes = bodyEl ? Array.from(bodyEl.children) : [];
+
+              // First: if current page already has content, check if the passage fits intact on a fresh page
+              if (currentPageHasItem) {
+                if (passageEl.parentNode) passageEl.parentNode.removeChild(passageEl);
+                if (unit.titleEl && unit.titleEl.parentNode) unit.titleEl.parentNode.removeChild(unit.titleEl);
+                if (createdNewSec && currentSecEl && currentSecEl.parentNode) {
+                  currentSecEl.parentNode.removeChild(currentSecEl);
+                }
+                currentSecIdx = prevSecIdx;
+                currentSecEl = prevSecEl;
+
+                const nextPage = createContinuationPage(currentPage);
+                pages.push(nextPage);
+                currentPage = nextPage;
+                currentBody = nextPage.querySelector('.sheet-body');
+                currentPageHasItem = false;
+                currentSecIdx = -1;
+                currentSecEl = null;
+
+                appendUnit(unit);
+                const freshUsed = passageEl.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+                if (freshUsed <= maxBottomOffsetPx || origNodes.length <= 1) {
+                  currentPageHasItem = true;
+                  return;
+                }
+              }
+
+              // If even on a clean page it still overflows and has multiple paragraphs, split across pages by paragraph
+              if (origNodes.length > 1) {
+                let remaining = origNodes.slice();
+                let activePassage = passageEl;
+                let activeBody = bodyEl;
+                let isFirstSlice = true;
+
+                while (remaining.length > 0) {
+                  activeBody.innerHTML = '';
+                  const kept = [];
+                  for (let pi = 0; pi < remaining.length; pi++) {
+                    const pNode = remaining[pi];
+                    activeBody.appendChild(pNode);
+                    kept.push(pNode);
+                    const h = activePassage.getBoundingClientRect().bottom - currentPage.getBoundingClientRect().top;
+                    if (h > maxBottomOffsetPx && kept.length > 1) {
+                      activeBody.removeChild(pNode);
+                      kept.pop();
+                      break;
+                    }
+                  }
+
+                  // Avoid stranding a trailing source alone on the next page OR a heading alone on this page
+                  if (kept.length < remaining.length) {
+                    if (remaining.length - kept.length === 1 && remaining[kept.length].classList.contains('passage-source') && kept.length >= 2) {
+                      const pullBack = kept.pop();
+                      activeBody.removeChild(pullBack);
+                    }
+                    if (kept.length === 1 && kept[0].classList.contains('passage-heading') && remaining.length >= 2) {
+                      activeBody.appendChild(remaining[1]);
+                      kept.push(remaining[1]);
+                    }
+                  }
+
+                  remaining = remaining.slice(kept.length);
+                  currentPageHasItem = true;
+
+                  if (remaining.length > 0) {
+                    activePassage.classList.add('is-split-top');
+                    const extraNode = activePassage.querySelector(':scope > .extra-space-lines');
+                    if (extraNode) activePassage.removeChild(extraNode);
+
+                    const contPage = createContinuationPage(currentPage);
+                    pages.push(contPage);
+                    currentPage = contPage;
+                    currentBody = contPage.querySelector('.sheet-body');
+                    currentPageHasItem = false;
+                    currentSecIdx = -1;
+                    currentSecEl = null;
+
+                    const contSec = document.createElement('section');
+                    contSec.className = 'exam-section';
+                    currentBody.appendChild(contSec);
+                    currentSecEl = contSec;
+                    currentSecIdx = unit.secIdx;
+
+                    const clonedPassage = document.createElement('div');
+                    clonedPassage.className = passageEl.className.replace(/\bis-split-top\b/g, '').trim();
+                    clonedPassage.classList.add('is-split-bottom');
+                    const clonedBody = document.createElement('div');
+                    clonedBody.className = 'passage-body';
+                    clonedPassage.appendChild(clonedBody);
+                    if (extraNode) clonedPassage.appendChild(extraNode);
+                    contSec.appendChild(clonedPassage);
+
+                    activePassage = clonedPassage;
+                    activeBody = clonedBody;
+                    isFirstSlice = false;
+                  } else if (!isFirstSlice) {
+                    activePassage.classList.add('is-split-bottom');
+                  }
+                }
+                return;
+              }
             }
-            currentSecIdx = prevSecIdx;
-            currentSecEl = prevSecEl;
 
-            const nextPage = createContinuationPage(currentPage);
-            pages.push(nextPage);
-            currentPage = nextPage;
-            currentBody = nextPage.querySelector('.sheet-body');
-            currentPageHasItem = false;
-            currentSecIdx = -1;
-            currentSecEl = null;
+            if (currentPageHasItem) {
+              if (unit.itemEl && unit.itemEl.parentNode) unit.itemEl.parentNode.removeChild(unit.itemEl);
+              if (unit.titleEl && unit.titleEl.parentNode) unit.titleEl.parentNode.removeChild(unit.titleEl);
+              if (createdNewSec && currentSecEl && currentSecEl.parentNode) {
+                currentSecEl.parentNode.removeChild(currentSecEl);
+              }
+              currentSecIdx = prevSecIdx;
+              currentSecEl = prevSecEl;
 
-            appendUnit(unit);
-            currentPageHasItem = true;
+              const nextPage = createContinuationPage(currentPage);
+              pages.push(nextPage);
+              currentPage = nextPage;
+              currentBody = nextPage.querySelector('.sheet-body');
+              currentPageHasItem = false;
+              currentSecIdx = -1;
+              currentSecEl = null;
+
+              appendUnit(unit);
+              currentPageHasItem = true;
+            } else {
+              currentPageHasItem = true;
+            }
           } else {
             currentPageHasItem = true;
           }
@@ -4261,13 +5229,15 @@
               lockMax: Number.isFinite(Number(q.lockMax)) ? Number(q.lockMax) : undefined,
               lockLastOption: q.type === 'mc' ? Boolean(q.lockLastOption) : undefined,
               lockColA: q.type === 'matching' ? Boolean(q.lockColA) : undefined,
+              lockStatementsOrder: q.type === 'tf' ? Boolean(q.lockStatementsOrder) : undefined,
               variants:
                 q.type === 'variant_group'
                   ? q.variants.map((vq) => ({
                       matchKey: vq.matchKey,
                       type: vq.type,
                       lockLastOption: vq.type === 'mc' ? Boolean(vq.lockLastOption) : undefined,
-                      lockColA: vq.type === 'matching' ? Boolean(vq.lockColA) : undefined
+                      lockColA: vq.type === 'matching' ? Boolean(vq.lockColA) : undefined,
+                      lockStatementsOrder: vq.type === 'tf' ? Boolean(vq.lockStatementsOrder) : undefined
                     }))
                   : undefined
             };
@@ -4441,8 +5411,40 @@
           });
         }
 
+        // Collapsible "Κείμενο & Μορφοποίηση" toolbar drawer (progressive disclosure)
+        function setTextToolsDrawerOpen(isOpen, persist = true) {
+          if (!els.textToolsDrawer || !els.toggleTextToolsBtn) return;
+          els.textToolsDrawer.hidden = !isOpen;
+          els.toggleTextToolsBtn.classList.toggle('is-open', isOpen);
+          els.toggleTextToolsBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          els.toggleTextToolsBtn.textContent = isOpen ? 'Κείμενο & Μορφοποίηση ▴' : 'Κείμενο & Μορφοποίηση ▾';
+          if (persist) {
+            try {
+              window.localStorage.setItem(TEXT_TOOLS_STORAGE_KEY, isOpen ? '1' : '0');
+            } catch (err) {
+              // ignore storage errors
+            }
+          }
+        }
+
+        try {
+          if (window.localStorage.getItem(TEXT_TOOLS_STORAGE_KEY) === '1') {
+            setTextToolsDrawerOpen(true, false);
+          }
+        } catch (err) {
+          // ignore storage errors
+        }
+
+        if (els.toggleTextToolsBtn) {
+          els.toggleTextToolsBtn.addEventListener('click', () => {
+            const nextOpen = Boolean(els.textToolsDrawer && els.textToolsDrawer.hidden);
+            setTextToolsDrawerOpen(nextOpen, true);
+          });
+        }
+
         // Math & formatting toolbar buttons
         document.querySelectorAll('.tool-btn').forEach((btn) => {
+          if (btn === els.toggleTextToolsBtn) return;
           btn.addEventListener('click', () => {
             if (btn.classList.contains('tool-wrap-btn')) {
               const wrapStart = btn.getAttribute('data-wrap-start') || '';
@@ -4471,7 +5473,7 @@
           let numberedCount = 0;
           let posNum = 1;
           sec.questions.forEach((item, idx) => {
-            if (item.type !== 'spacer') {
+            if (!isNonNumberedItem(item)) {
               numberedCount += 1;
               if (idx === qIdx) posNum = numberedCount;
             }
@@ -4587,6 +5589,11 @@
             scheduleAutosave();
           } else if (action === 'toggle-col-a-lock') {
             q.lockColA = ctrl.checked;
+            generateAllVersions();
+            renderPreview();
+            scheduleAutosave();
+          } else if (action === 'toggle-tf-order-lock') {
+            q.lockStatementsOrder = ctrl.checked;
             generateAllVersions();
             renderPreview();
             scheduleAutosave();
