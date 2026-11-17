@@ -1500,6 +1500,46 @@
       justify-content: center;
     }
 
+    /* Confirm Sample Load Modal */
+    .confirm-modal {
+      max-width: 440px;
+    }
+
+    .confirm-emblem-warning {
+      background-color: var(--warning-soft);
+      border-color: var(--warning-border);
+      color: var(--warning);
+    }
+
+    .confirm-modal-desc {
+      margin: 10px 0 0;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+
+    .confirm-modal-actions {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .confirm-modal-actions .btn {
+      width: 100%;
+    }
+
+    .btn-danger-outline {
+      border-color: #fecaca;
+      background-color: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .btn-danger-outline:hover {
+      background-color: #fee2e2;
+      border-color: #fca5a5;
+    }
+
     /* Rich text underline & KaTeX tuning */
     u {
       text-decoration: underline;
@@ -1865,6 +1905,32 @@
     </div>
   </div>
 
+  <!-- Confirm Load Sample Modal (Hidden on Print) -->
+  <div id="confirmSampleModalBackdrop" class="about-modal-backdrop no-print" hidden role="dialog" aria-modal="true" aria-labelledby="confirmSampleModalTitle" aria-describedby="confirmSampleModalDesc">
+    <div class="about-modal confirm-modal">
+      <button type="button" id="confirmSampleCloseIconBtn" class="about-close-btn" aria-label="Κλείσιμο παραθύρου">&times;</button>
+
+      <div class="about-emblem confirm-emblem-warning" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+      </div>
+
+      <h2 id="confirmSampleModalTitle" class="about-title">Φόρτωση Δείγματος Διαγωνίσματος</h2>
+      <p id="confirmSampleModalDesc" class="confirm-modal-desc">
+        Η φόρτωση του δείγματος θα αντικαταστήσει τον τρέχοντα τίτλο, τα στοιχεία μαθητή και όλες τις ερωτήσεις σας. Θέλετε να αποθηκεύσετε πρώτα το τρέχον διαγώνισμα σε αρχείο <code>.json</code>;
+      </p>
+
+      <div class="confirm-modal-actions">
+        <button type="button" id="confirmSampleSaveBtn" class="btn btn-primary">Αποθήκευση .json &amp; Φόρτωση Δείγματος</button>
+        <button type="button" id="confirmSampleProceedBtn" class="btn btn-danger-outline">Φόρτωση χωρίς αποθήκευση</button>
+        <button type="button" id="confirmSampleCancelBtn" class="btn">Ακύρωση</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /*
      * Γεννήτρια Διαγωνισμάτων - Εφαρμογή δημιουργίας και εκτύπωσης διαγωνισμάτων
@@ -1890,7 +1956,7 @@
       // =========================================================================
       // ΕΚΔΟΣΗ ΕΦΑΡΜΟΓΗΣ - Αλλάξτε χειροκίνητα την τιμή της σταθεράς παρακάτω
       // =========================================================================
-      const APP_VERSION = '1.4.0';
+      const APP_VERSION = '1.5.0';
 
       const GREEK_LETTERS = ['α', 'β', 'γ', 'δ', 'ε', 'στ', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν'];
       const GROUP_NAMES = ['Α', 'Β', 'Γ', 'Δ'];
@@ -2028,6 +2094,11 @@
         aboutVersionText: document.getElementById('aboutVersionText'),
         aboutCloseIconBtn: document.getElementById('aboutCloseIconBtn'),
         aboutCloseBtn: document.getElementById('aboutCloseBtn'),
+        confirmSampleModalBackdrop: document.getElementById('confirmSampleModalBackdrop'),
+        confirmSampleCloseIconBtn: document.getElementById('confirmSampleCloseIconBtn'),
+        confirmSampleSaveBtn: document.getElementById('confirmSampleSaveBtn'),
+        confirmSampleProceedBtn: document.getElementById('confirmSampleProceedBtn'),
+        confirmSampleCancelBtn: document.getElementById('confirmSampleCancelBtn'),
         toast: document.getElementById('toast')
       };
 
@@ -4651,8 +4722,8 @@
         els.shuffleBtn.addEventListener('click', triggerReshuffle);
         els.shuffleBtnSecondary.addEventListener('click', triggerReshuffle);
 
-        // Load Sample
-        els.loadSampleBtn.addEventListener('click', () => {
+        // Load Sample with confirmation modal
+        function executeLoadSample() {
           state.header.title = DEFAULT_TITLE;
           state.header.subtitle = '';
           state.header.studentInfo = DEFAULT_STUDENT_INFO;
@@ -4664,7 +4735,63 @@
           rebuildFromText();
           scheduleAutosave(true);
           showToast('Φορτώθηκε το δείγμα διαγωνίσματος ΣΤ΄ Δημοτικού.');
-        });
+        }
+
+        function openConfirmSampleModal() {
+          if (!els.confirmSampleModalBackdrop) {
+            executeLoadSample();
+            return;
+          }
+          els.confirmSampleModalBackdrop.hidden = false;
+          requestAnimationFrame(() => {
+            els.confirmSampleModalBackdrop.classList.add('is-open');
+          });
+          if (els.confirmSampleCancelBtn) {
+            els.confirmSampleCancelBtn.focus();
+          }
+        }
+
+        function closeConfirmSampleModal(restoreFocus = true) {
+          if (!els.confirmSampleModalBackdrop || els.confirmSampleModalBackdrop.hidden) return;
+          els.confirmSampleModalBackdrop.classList.remove('is-open');
+          setTimeout(() => {
+            if (!els.confirmSampleModalBackdrop.classList.contains('is-open')) {
+              els.confirmSampleModalBackdrop.hidden = true;
+            }
+          }, 180);
+          if (restoreFocus && els.loadSampleBtn) {
+            els.loadSampleBtn.focus();
+          }
+        }
+
+        els.loadSampleBtn.addEventListener('click', openConfirmSampleModal);
+
+        if (els.confirmSampleSaveBtn) {
+          els.confirmSampleSaveBtn.addEventListener('click', () => {
+            exportProjectJson();
+            closeConfirmSampleModal(false);
+            executeLoadSample();
+          });
+        }
+        if (els.confirmSampleProceedBtn) {
+          els.confirmSampleProceedBtn.addEventListener('click', () => {
+            closeConfirmSampleModal(false);
+            executeLoadSample();
+          });
+        }
+        if (els.confirmSampleCancelBtn) {
+          els.confirmSampleCancelBtn.addEventListener('click', () => closeConfirmSampleModal(true));
+        }
+        if (els.confirmSampleCloseIconBtn) {
+          els.confirmSampleCloseIconBtn.addEventListener('click', () => closeConfirmSampleModal(true));
+        }
+        if (els.confirmSampleModalBackdrop) {
+          els.confirmSampleModalBackdrop.addEventListener('click', (e) => {
+            if (e.target === els.confirmSampleModalBackdrop) {
+              closeConfirmSampleModal(true);
+            }
+          });
+        }
 
         // Export / Import JSON
         els.exportJsonBtn.addEventListener('click', exportProjectJson);
@@ -4730,8 +4857,12 @@
           });
         }
         document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && els.aboutModalBackdrop && !els.aboutModalBackdrop.hidden) {
-            closeAboutModal();
+          if (e.key === 'Escape') {
+            if (els.confirmSampleModalBackdrop && !els.confirmSampleModalBackdrop.hidden) {
+              closeConfirmSampleModal(true);
+            } else if (els.aboutModalBackdrop && !els.aboutModalBackdrop.hidden) {
+              closeAboutModal();
+            }
           }
         });
 
